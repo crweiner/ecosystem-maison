@@ -1626,15 +1626,15 @@ export class ForestScene {
  * appears or vanishes inside the frame. The two clearings swap along the
  * middle of the wall, always hidden behind its densest trunks.
  */
-const WALL = 1.5; // base wall width, in frame widths
-const RAMP = 0.35; // thinning at each ragged end, in frame widths
+const WALL = 1.0; // base wall width, in frame widths
+const RAMP = 0.25; // thinning at each ragged end, in frame widths
 const RANKS = [
   // Far trunks: thin, hazed into the forest's depth, slower.
-  { speed: 0.8, shade: 0.45, ink: 0.1, wMin: 3, wFrac: 0.03, gap: 5, keep: 1.4, rim: false },
+  { speed: 0.9, shade: 0.45, ink: 0.1, wMin: 3, wFrac: 0.03, gap: 5, keep: 1.4, rim: false },
   // Middle trunks.
   { speed: 1, shade: 0.2, ink: 0.25, wMin: 6, wFrac: 0.05, gap: 7, keep: 1.25, rim: false },
   // Near trunks: wide and dark, faster; only these catch a thin rim of light.
-  { speed: 1.25, shade: 0, ink: 0.5, wMin: 12, wFrac: 0.09, gap: 26, keep: 0.9, rim: true },
+  { speed: 1.1, shade: 0, ink: 0.5, wMin: 12, wFrac: 0.09, gap: 26, keep: 0.9, rim: true },
 ];
 
 interface Trunk {

@@ -205,6 +205,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       // above and below the copy, so the sky beyond it is left whole.
       // Stacked layouts: the forest floor darkens from just above the copy.
       const y1 = c.bottom / U;
+      const ax = Math.round(x0);
+      const ay = Math.round(y0);
       const fadeX = Math.max(18, W * 0.2);
       const fadeY = Math.max(16, H * 0.22);
       const side = s.scene?.L.textSide ?? 'left';
@@ -222,12 +224,15 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
           let dy = 0;
           if (y < y0 - 2) dy = (y0 - 2 - y) / fadeY;
           else if (side !== 'bottom' && y > y1 + 2) dy = (y - y1 - 2) / fadeY;
-          const ragged = (noise2(x * 0.09, y * 0.09, 17) - 0.5) * 0.45;
+          // Noise and dither are anchored to the copy, so the pool moves as one piece.
+          const cx = x - ax;
+          const cy = y - ay;
+          const ragged = (noise2(cx * 0.09, cy * 0.09, 17) - 0.5) * 0.45;
           const d = Math.sqrt(dx * dx + dy * dy) + ragged;
           const hx = Math.max(0, 1 - d) ** 1.3;
           const hy = 1;
           const k = hx * hy * (levels.length - 1);
-          const lv = Math.min(levels.length - 1, Math.floor(k + bayer(x, y) / 16));
+          const lv = Math.min(levels.length - 1, Math.floor(k + bayer(cx, cy) / 16));
           if (lv <= 0) continue;
           const p = frame.buf[row + x];
           const t = levels[lv];

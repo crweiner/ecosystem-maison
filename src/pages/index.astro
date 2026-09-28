@@ -180,6 +180,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         const el = entry.target as HTMLElement;
         if (el === hero) {
           root.classList.toggle('at-top', entry.isIntersecting);
+          if (entry.isIntersecting) links.forEach((l) => l.removeAttribute('aria-current'));
           continue;
         }
         if (el === closing) {
@@ -188,11 +189,10 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         }
         const link = links.get(el.id);
         if (!link) continue;
+        // The last clearing passed stays current through the trees that follow it.
         if (entry.isIntersecting) {
           links.forEach((l) => l.removeAttribute('aria-current'));
           link.setAttribute('aria-current', 'location');
-        } else if (link.getAttribute('aria-current')) {
-          link.removeAttribute('aria-current');
         }
       }
     },
@@ -266,8 +266,8 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
   /* The gap between clearings: short, since the wall's passage also borrows half a screen from each side. */
   .trees {
-    height: 45vh;
-    height: 45svh;
+    height: 50vh;
+    height: 50svh;
   }
 
   .close {
