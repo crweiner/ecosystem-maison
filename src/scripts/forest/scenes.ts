@@ -734,7 +734,7 @@ export class ForestScene {
       case 'meadow': {
         const d = s.deer;
         const gy = this.gy[Math.max(0, Math.min(this.W - 1, Math.round(d.x)))];
-        this.figure(f, sky, Math.round(d.x) - 30, gy - 44, 60, 48, (g) => drawDeer(g, sky, d.x, gy, d.dir, d as DeerPose, this.sunSide));
+        this.figure(f, sky, Math.round(d.x) - 30, gy - 44, 60, 48, (g) => drawDeer(g, sky, d.x, gy, d.dir, d as DeerPose, this.sunSide), gy - 14);
         this.paintWater(f, sky, s.pondTop, s.pondBot, i.t, 0);
         this.paintReeds(f, sky, s.pondBot, i.t);
         break;
@@ -768,14 +768,15 @@ export class ForestScene {
     const waterScene = this.spec.kind === 'beavers' || this.spec.kind === 'bear';
     if (!waterScene) this.paintGrass(f, sky, i);
     if (this.spec.kind === 'fireflies') this.paintFerns(f, sky, i.t);
-    else this.foreground(f, sky, i.t);
+    // Stacked layouts keep the forest floor under the words clean.
+    else if (this.L.textSide !== 'bottom') this.foreground(f, sky, i.t);
   }
 
   /**
    * Draw a figure on its own layer, then trace one continuous line of rim
    * light along its sunward edge, the way a low sun outlines an animal.
    */
-  private figure(f: Frame, sky: Sky, x0: number, y0: number, w: number, h: number, draw: (g: Frame) => void) {
+  private figure(f: Frame, sky: Sky, x0: number, y0: number, w: number, h: number, draw: (g: Frame) => void, topLimit = Infinity) {
     const g = this.scratch;
     const xa = Math.max(0, x0);
     const xb = Math.min(this.W, x0 + w);
@@ -792,8 +793,11 @@ export class ForestScene {
         const v = g.buf[y * this.W + x];
         if (!v) continue;
         let c = v;
-        if (rimOn && !g.get(x + s, y)) c = rim;
-        else if (rimOn && !g.get(x, y - 1) && !g.get(x + s, y - 1)) c = top;
+        // Only the sunward contour of the mass lights: a pixel whose sun side is
+        // open and whose far side is solid. Thin legs and tines stay dark.
+        const solidBehind = g.get(x - s, y) !== 0;
+        if (rimOn && !g.get(x + s, y) && solidBehind) c = rim;
+        else if (rimOn && y < topLimit && !g.get(x, y - 1) && solidBehind && g.get(x + s, y) !== 0) c = top;
         f.buf[y * this.W + x] = c;
       }
     }

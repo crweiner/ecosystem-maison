@@ -157,8 +157,13 @@ const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[
       max-width: none;
     }
 
+    /* The haiku stays the scene's voice: never set smaller than the tagline. */
+    .stop__tagline {
+      font-size: 0.9375rem;
+    }
+
     .stop__haiku {
-      font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.75rem);
+      font-size: clamp(1rem, calc(100cqi / var(--measure, 20)), 1.75rem);
     }
   }
 

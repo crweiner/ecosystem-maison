@@ -8,7 +8,7 @@
  * page names a clearing and its hour, and between clearings a wall of trunks
  * passes across the frame while the next clearing swaps in behind it.
  */
-import { bayer, skyAt, type RGB, type Sky } from './color';
+import { bayer, noise2, skyAt, type RGB, type Sky } from './color';
 import { Frame } from './raster';
 import { ForestScene, paintWall, wallSpan, type Input, type Layout } from './scenes';
 import type { Scene } from '../../data/products';
@@ -200,15 +200,19 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       const by0 = Math.max(0, Math.floor(y0 - fadeY - 4));
       const by1 = side === 'bottom' ? H : Math.min(H, Math.ceil(y1 + fadeY + 4));
       for (let y = by0; y < by1; y++) {
-        const dy = y < y0 - 2 ? (y0 - 2 - y) / fadeY : side !== 'bottom' && y > y1 + 2 ? (y - y1 - 2) / fadeY : 0;
-        const hy = Math.max(0, 1 - dy) ** 1.3;
-        if (hy <= 0) continue;
         const row = y * W;
         for (let x = Math.max(0, bx0); x < Math.min(W, bx1); x++) {
+          // A rounded pool of shade, its edge broken by noise like the shadow of a canopy.
           let dx = 0;
           if (side === 'left' && x > x1 - 6) dx = (x - x1 + 6) / fadeX;
           else if (side === 'right' && x < x0 + 6) dx = (x0 + 6 - x) / fadeX;
-          const hx = Math.max(0, 1 - dx) ** 1.4;
+          let dy = 0;
+          if (y < y0 - 2) dy = (y0 - 2 - y) / fadeY;
+          else if (side !== 'bottom' && y > y1 + 2) dy = (y - y1 - 2) / fadeY;
+          const ragged = (noise2(x * 0.09, y * 0.09, 17) - 0.5) * 0.45;
+          const d = Math.sqrt(dx * dx + dy * dy) + ragged;
+          const hx = Math.max(0, 1 - d) ** 1.3;
+          const hy = 1;
           const k = hx * hy * (levels.length - 1);
           const lv = Math.min(levels.length - 1, Math.floor(k + bayer(x, y) / 16));
           if (lv <= 0) continue;
