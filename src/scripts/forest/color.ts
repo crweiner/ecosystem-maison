@@ -77,7 +77,7 @@ type Key = [number, Record<keyof Omit<Sky, 'dim' | 'backlit'>, string>, number, 
 
 const KEYS: Key[] = [
   [5.4, { top: '#120f28', upper: '#221a3e', lower: '#44305a', horizon: '#8a4c66', sun: '#ffc98a', glow: '#b0586a', haze: '#5a4264', far: '#3a2e52', ridge: '#241f38', light: '#b98a9a', shade: '#1a1530', grass: '#243a36', ink: '#0a0b12', water: '#1a1a34' }, 0.9, 0.9],
-  [6.2, { top: '#2a1b3d', upper: '#4f2f5c', lower: '#a5566a', horizon: '#f28a5b', sun: '#fff0c4', glow: '#ffc46e', haze: '#b98284', far: '#6d4d6c', ridge: '#3c3350', light: '#ffc09a', shade: '#2a2140', grass: '#3d5a3e', ink: '#0d0d16', water: '#3a2e52' }, 0.45, 1],
+  [6.2, { top: '#2e1d46', upper: '#6a3664', lower: '#d4667a', horizon: '#ff9468', sun: '#fff4d2', glow: '#ffb070', haze: '#b98284', far: '#6d4d6c', ridge: '#3c3350', light: '#ffc09a', shade: '#2a2140', grass: '#3d5a3e', ink: '#0d0d16', water: '#3a2e52' }, 0.45, 1],
   [7.4, { top: '#34528e', upper: '#5c7fb4', lower: '#b0b6c8', horizon: '#f5cf9a', sun: '#fff8e0', glow: '#fbe0a6', haze: '#a9b4c4', far: '#7f8fa8', ridge: '#556a7e', light: '#ffe6c0', shade: '#2e3a52', grass: '#557f3c', ink: '#0e1318', water: '#34507a' }, 0.2, 0.55],
   [10, { top: '#2f6cc0', upper: '#5494d8', lower: '#98c6e8', horizon: '#d6ecf2', sun: '#fffef4', glow: '#eaf6f8', haze: '#b2d0e0', far: '#84a8c0', ridge: '#5b8490', light: '#fff6e0', shade: '#2c4458', grass: '#6a9e44', ink: '#0f161a', water: '#3a6d96' }, 0, 0.12],
   [13, { top: '#2a66bd', upper: '#4f92dc', lower: '#94c8ee', horizon: '#d2eaf4', sun: '#ffffff', glow: '#eef8fb', haze: '#aed0e4', far: '#7ea8c4', ridge: '#57868c', light: '#fffaf0', shade: '#2a4456', grass: '#6fa648', ink: '#0f161a', water: '#386c98' }, 0, 0.08],

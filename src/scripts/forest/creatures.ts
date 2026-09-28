@@ -27,10 +27,10 @@ export const ACORN = new Material(hex('#9a6a34'));
 export const CAP = new Material(hex('#5a3c22'));
 
 /** Shade a volume: lit on top, shaded below, rim on the sun side when backlit. */
-function volume(tones: number[], sky: Sky, sunSide: number, belly?: number[]) {
+function volume(tones: number[], sky: Sky, sunSide: number, belly?: number[], rim = true) {
   return (nx: number, ny: number): number => {
     const r2 = nx * nx + ny * ny;
-    if (sky.backlit > 0.4 && r2 > 0.62 && nx * sunSide > 0.35 && ny < 0.5) return tones[4];
+    if (rim && sky.backlit > 0.4 && r2 > 0.62 && nx * sunSide > 0.35 && ny < 0.5) return tones[4];
     if (belly && ny > 0.42) return belly[ny > 0.75 ? 1 : 2];
     if (ny < -0.5) return tones[3];
     if (ny > 0.55) return tones[1];
@@ -98,12 +98,15 @@ export function drawDeer(f: Frame, sky: Sky, x: number, y: number, dir: number, 
   leg(-5.5 - stretch, by + 2 * S, ha - 0.28, hb, fur[1], fur[0], 3);
 
   // Body: haunch, barrel, deep chest. Cream belly and a pale rump patch.
-  const shade = volume(fur, sky, sunSide * dir, cream);
+  // No per-part rim here: the scene traces one continuous rim around the whole silhouette.
+  const shade = volume(fur, sky, sunSide * dir, undefined, false);
+  const barrel = volume(fur, sky, sunSide * dir, cream, false);
   f.ellipse(X(-5.5 - stretch), by - 0.6 * S, 4.4 * S, 4.8 * S, shade);
-  f.ellipse(X(0), by, (8 + stretch) * S, 4.2 * S, shade);
+  f.ellipse(X(0), by, (8 + stretch) * S, 4.2 * S, barrel);
   f.ellipse(X(5.5 + stretch), by - 0.4 * S, 4 * S, 4.7 * S, shade);
-  const rumpX = X(-9.6 - stretch);
-  f.ellipse(rumpX, by - 1.5 * S, 1.6, 2.4, () => cream[3]);
+  const rumpX = X(-9.4 - stretch);
+  f.px(rumpX, by - 2 * S, cream[2]);
+  f.px(rumpX, by - 2 * S + 1, cream[2]);
   // Tail: a short flag that flicks up.
   f.px(rumpX - dir, by - 3 * S - Math.round(p.tail * 2), fur[2]);
   f.px(rumpX - dir, by - 2 * S - Math.round(p.tail * 2), cream[2]);
@@ -122,10 +125,7 @@ export function drawDeer(f: Frame, sky: Sky, x: number, y: number, dir: number, 
     const r = (2.6 - t * 0.7) * S;
     f.ellipse(nx0 + (hx - nx0) * t, ny0 + (hy - ny0) * t, r, r, shade);
   }
-  // A pale throat patch under the jaw.
-  f.px(hx + dir * S, hy + 2 * S, cream[3]);
-  f.px(hx, hy + 2.6 * S, cream[2]);
-  const headShade = volume(fur, sky, sunSide * dir);
+  const headShade = volume(fur, sky, sunSide * dir, undefined, false);
   f.ellipse(hx, hy, 3 * S * 0.9, 2.3 * S * 0.9, headShade);
   const mx = hx + dir * (1.4 + 2 * h) * S;
   const my = hy + (2 * (1 - h) + 0.6) * S;
@@ -144,7 +144,7 @@ export function drawDeer(f: Frame, sky: Sky, x: number, y: number, dir: number, 
   // Antlers: a young stag's crown, catching the light.
   const ax = hx - dir * 0.5 * S;
   const ay = hy - 2.2 * S;
-  const c = sky.backlit > 0.4 && sunSide * dir < 0 ? bone[4] : bone[3];
+  const c = bone[3];
   f.line(ax, ay, ax - dir * 3, ay - 7, c);
   f.line(ax - dir * 3, ay - 7, ax - dir * 5, ay - 10, c);
   f.line(ax - dir * 1, ay - 3, ax + dir * 2, ay - 6, c);

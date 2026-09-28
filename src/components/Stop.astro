@@ -11,6 +11,10 @@ const { product, index } = Astro.props;
 // Clearings alternate: words on the left, then the right, down the day.
 const side = index % 2 === 0 ? 'left' : 'right';
 const logoH = 48;
+// The haiku is sized from its longest verse (in ems, with its step-in), so each
+// verse keeps to one line. Pixelify averages about 0.56em a character.
+const steps = [0, 1.1, 0.55];
+const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[i])) + 0.4;
 ---
 
 <section
@@ -33,7 +37,7 @@ const logoH = 48;
       />
     </h2>
     <p class="stop__tagline">{product.tagline}</p>
-    <p class="stop__haiku">
+    <p class="stop__haiku" style={`--measure:${measure.toFixed(2)}`}>
       {product.haiku.map((line) => <span>{line}</span>)}
     </p>
     <p class="visually-hidden">In this clearing: {product.sceneLabel}.</p>
@@ -93,15 +97,16 @@ const logoH = 48;
 
   /*
    * The haiku is the scene's voice, set in the forest's pixel face and stepped
-   * down the column like a hand-set poem. Sized from the column's width so each
-   * verse keeps to one line.
+   * down the column like a hand-set poem. Sized from the column's width and the
+   * longest verse (--measure, in ems) so each verse keeps to one line; only on
+   * the narrowest phones does a verse wrap, and then it hangs under itself.
    */
   .stop__haiku {
     margin: 0 0 clamp(1.5rem, 4.8vh, 2.5rem);
     font-family: var(--font-pixel);
     font-weight: 450;
-    font-size: clamp(1.15rem, 0.9rem + 1.1vw, 2rem);
-    font-size: clamp(1.1rem, 5.3cqi, 2.1rem);
+    font-size: clamp(1.1rem, 0.9rem + 1.1vw, 2rem);
+    font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 2.1rem);
     line-height: 1.34;
     color: var(--ink);
   }
@@ -153,7 +158,7 @@ const logoH = 48;
     }
 
     .stop__haiku {
-      font-size: clamp(1rem, 5.2cqi, 1.75rem);
+      font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.75rem);
     }
   }
 
@@ -169,7 +174,7 @@ const logoH = 48;
 
     .stop__haiku {
       margin-bottom: 1rem;
-      font-size: clamp(1rem, 5cqi, 1.35rem);
+      font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.35rem);
     }
   }
 </style>

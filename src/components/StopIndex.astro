@@ -32,12 +32,6 @@ const { products } = Astro.props;
     transition: opacity 240ms var(--ease-out);
   }
 
-  :global(html.at-top) .index,
-  :global(html.at-close) .index {
-    opacity: 0;
-    pointer-events: none;
-  }
-
   ol {
     display: grid;
     gap: 0.125rem;

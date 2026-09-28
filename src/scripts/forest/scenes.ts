@@ -59,6 +59,9 @@ const BUTTERCUP = new Material(hex('#f2c22e'));
 const CORNFLOWER = new Material(hex('#4a78d8'));
 const FERN = new Material(hex('#4a7a3a'));
 
+/** Where each clearing's sun sits across the stage, so no two stops repeat one sky. */
+const SUN_OFFSET: Record<string, number> = { beavers: 0.2, squirrels: -0.32, bear: 0.36, hummingbird: 0.02, web: -0.1, bees: 0.3 };
+
 /** One shared wind: a slow sway plus gusts that roll across the whole world. */
 export function wind(x: number, t: number, W: number): number {
   const sway = Math.sin(t * 0.9 - x * 0.045) * 0.35;
@@ -112,6 +115,8 @@ export class ForestScene {
   private state: Record<string, any> = {};
   /** Resolves the random-jump run once the deer has left the frame. */
   private runDone: (() => void) | null = null;
+  /** Off-screen layer for drawing a figure before tracing its rim light. */
+  private scratch: Frame;
 
   constructor(
     public spec: Scene,
@@ -122,6 +127,7 @@ export class ForestScene {
     this.H = H;
     this.hS = groundY;
     this.seed = spec.seed;
+    this.scratch = new Frame(W, H);
     const r = rng(spec.seed * 7919 + 1);
 
     // The sun rides on the stage side, so its light falls across the creatures.
@@ -132,14 +138,15 @@ export class ForestScene {
           Math.round(stageX - away * 5)
         : textSide === 'bottom'
           ? Math.round(W * (0.62 + r() * 0.2))
-          : Math.round(stageX + away * L.stageW * 0.16);
+          : Math.round(stageX + away * L.stageW * (SUN_OFFSET[spec.kind] ?? 0.16));
     this.sunSide = Math.sign(this.sunX - stageX) || 1;
 
     // Ground line: gentle undulation, plus a knoll for the deer.
     this.gy = new Int16Array(W);
     for (let x = 0; x < W; x++) {
       let y = groundY + Math.round((noise1(x * 0.05, spec.seed) - 0.5) * 2);
-      if (spec.kind === 'meadow') y -= Math.round(6 * Math.exp(-(((x - stageX) / (L.stageW * 0.16 + 10)) ** 2)));
+      // The stag's knoll: a lit rise in a clearing, so he stands clear of the treeline.
+      if (spec.kind === 'meadow') y -= Math.round(10 * Math.exp(-(((x - stageX) / (L.stageW * 0.2 + 12)) ** 2)));
       this.gy[x] = y;
     }
 
@@ -157,6 +164,10 @@ export class ForestScene {
       if (open && kind === 'near') continue;
       if (pineDensity > 0 && spec.kind !== 'fireflies') {
         for (let x = -6; x < W + 6; ) {
+          if (spec.kind === 'meadow' && kind === 'near' && Math.abs(x - stageX) < L.stageW * 0.24 + 12) {
+            x += 3;
+            continue;
+          }
           const tall = kind === 'near' ? hs * (0.05 + r() * 0.1) : hs * (0.025 + r() * 0.05);
           pines.push({ x, h: Math.max(4, Math.round(tall)) });
           x += Math.round((kind === 'near' ? 2 : 4) + r() * (kind === 'near' ? 5 : 9) / pineDensity);
@@ -191,10 +202,11 @@ export class ForestScene {
         s.deer = {
           x: L.stageX,
           dir: toText,
-          // The first thing a visitor sees: the stag with its head up against the sun.
-          mode: 'look',
-          timer: 3.5 + r() * 2,
-          head: 1,
+          // The first thing a visitor sees: the stag grazing at sunrise. He looks up
+          // when the pointer comes near, or now and then on his own.
+          mode: 'graze',
+          timer: 3 + r() * 2.5,
+          head: 0,
           ears: 0,
           tail: 0,
           chew: 0,
@@ -203,7 +215,7 @@ export class ForestScene {
         };
         s.pondTop = this.hS + 3;
         const below = this.H - this.hS;
-        s.pondBot = this.hS + Math.round(L.textSide === 'bottom' ? Math.min(18, Math.max(7, below * 0.2)) : below * 0.6);
+        s.pondBot = L.textSide === 'bottom' ? this.hS + Math.round(Math.min(18, Math.max(7, below * 0.2))) : this.H;
         s.reeds = Array.from({ length: Math.round(W / 9) }, () => ({ x: Math.round(r() * W), h: 3 + Math.round(r() * 7) })).filter(
           (rd) => Math.abs(rd.x - L.stageX) > L.stageW * 0.12,
         );
@@ -260,9 +272,9 @@ export class ForestScene {
         break;
       }
       case 'hummingbird': {
-        const n = Math.max(5, Math.min(11, Math.round(L.stageW / 14)));
+        const n = Math.max(8, Math.min(18, Math.round(L.stageW / 8)));
         s.spikes = Array.from({ length: n }, (_, i) => {
-          const x = Math.round(L.stageX + (i / (n - 1) - 0.5) * L.stageW * 0.62 + (r() - 0.5) * 6);
+          const x = Math.round(L.stageX + (i / (n - 1) - 0.5) * L.stageW * 0.5 + (r() - 0.5) * 6);
           return { x, h: Math.round(this.hS * (0.2 + r() * 0.2)), kind: r() < 0.55 ? 0 : 1, lean: (r() - 0.5) * 0.3 };
         });
         s.bird = { x: L.stageX, y: this.hS - this.hS * 0.2, dir: toText, target: 0, hover: 1.5, dart: 0, fx: 0, fy: 0, tx: 0, ty: 0 };
@@ -287,8 +299,8 @@ export class ForestScene {
       }
       case 'bees': {
         s.hiveX = Math.round(L.stageX + (L.textSide === 'bottom' ? 0 : -toText * L.stageW * 0.1));
-        s.hiveW = Math.max(12, Math.min(22, Math.round(this.hS * 0.11)));
-        s.hiveH = Math.round(this.hS * 0.3);
+        s.hiveW = Math.max(6, Math.min(12, Math.round(this.hS * 0.06)));
+        s.hiveH = Math.round(this.hS * 0.2);
         s.flowers = Array.from({ length: Math.round(L.stageW * 0.7) + 14 }, () => {
           const x = Math.round(L.stageX + (r() - 0.5) * L.stageW * 1.1);
           return { x, h: 3 + Math.round(r() * r() * 13), kind: Math.floor(r() * 4) };
@@ -348,9 +360,13 @@ export class ForestScene {
     this.paintSky(f, sky, hour);
     this.paintRidges(f, sky);
     this.paintGround(f, sky);
+    if (this.spec.kind === 'squirrels' || this.spec.kind === 'web' || this.spec.kind === 'bear') this.shafts(f, sky, 3, 0.35);
     switch (this.spec.kind) {
       case 'squirrels':
         this.paintOak(f, sky);
+        break;
+      case 'hummingbird':
+        this.paintThicket(f, sky);
         break;
       case 'bear':
         this.paintCliff(f, sky);
@@ -368,7 +384,7 @@ export class ForestScene {
     const horizon = this.hS - this.hS * 0.2;
     const y = Math.round(horizon - sunElevation(hour) * horizon * 0.82);
     // In the meadow the low sun clears the far ridge just enough to back-light the stag.
-    return this.spec.kind === 'meadow' ? Math.min(y, Math.round(this.hS - this.hS * 0.3)) : y;
+    return this.spec.kind === 'meadow' ? Math.min(y, Math.round(this.hS - this.hS * 0.4)) : y;
   }
 
   private paintSky(f: Frame, sky: Sky, hour: number) {
@@ -426,7 +442,13 @@ export class ForestScene {
 
   private ridgeTop(rd: Ridge, x: number): number {
     const n = noise1(x * rd.freq, this.seed + rd.base) * 0.7 + noise1(x * rd.freq * 2.7, this.seed * 3 + rd.base) * 0.3;
-    return Math.round(rd.base - n * rd.amp);
+    let top = rd.base - n * rd.amp;
+    if (this.spec.kind === 'meadow' && rd.kind === 'near') {
+      // A clearing in the forest edge behind the stag.
+      const g = Math.exp(-(((x - this.L.stageX) / (this.L.stageW * 0.22 + 12)) ** 2));
+      top += (this.hS + 2 - top) * g;
+    }
+    return Math.round(top);
   }
 
   private paintRidges(f: Frame, sky: Sky) {
@@ -564,31 +586,47 @@ export class ForestScene {
     this.pine(f, x1 + 3, crown(x1) + 4, Math.round(this.hS * 0.07), pineC[1], rim);
   }
 
+  /** A flowering lime tree at the meadow's heart; the wild colony lives in its hollow. */
   private paintHive(f: Frame, sky: Sky) {
     const s = this.state;
     const bark = BARK.tones(sky);
-    const moss = MOSS.tones(sky);
-    const x0 = Math.round(s.hiveX - s.hiveW / 2);
-    const top = this.hS - s.hiveH;
-    // An old snag, broken off, with the wild colony's doorway high on its trunk.
-    trunk(f, x0, s.hiveW, top, this.hS + 1, bark, this.sunSide, this.seed, { rim: sky.backlit > 0.3, flare: 3 });
-    // The break: splintered, pale heartwood at the top.
-    const heart = pack(mix(unpack(bark[3]), [226, 200, 160], 0.45));
-    for (let x = x0; x < x0 + s.hiveW; x++) {
-      const cut = Math.round(noise1(x * 0.6, this.seed) * 5 + (x - x0) * 0.25);
-      for (let y = top - 1; y < top + cut; y++) f.px(x, y, f.get(x, top - 8));
-      f.px(x, top + cut, heart);
+    const tw = s.hiveW as number;
+    const crownY = Math.round(this.hS - this.hS * 0.5);
+    trunk(f, s.hiveX - tw / 2, tw, crownY, this.hS + 1, bark, this.sunSide, this.seed, { rim: sky.backlit > 0.3, flare: 3 });
+    for (const a of [-0.8, 0.2, 0.9]) {
+      const len = this.hS * 0.16;
+      for (let w = 0; w < 2; w++) f.line(s.hiveX + w, crownY + 4, s.hiveX + Math.sin(a) * len + w, crownY - Math.cos(a) * len * 0.6, bark[w ? 1 : 2]);
     }
-    // A broken limb and a shelf of moss.
-    for (let k = 0; k < 6; k++) f.px(x0 + s.hiveW + k, top + s.hiveH * 0.55 - Math.round(k * 0.7), bark[2]);
-    for (let x = x0 - 1; x < x0 + s.hiveW + 1; x++) if (hash(x, 3) < 0.7) f.px(x, top + Math.round(s.hiveH * 0.62), moss[3]);
-    // The doorway, a dark knot hole with a waxy lip where the bees come and go.
-    const dy = Math.round(top + s.hiveH * 0.35);
-    f.ellipse(s.hiveX, dy, 2.2, 3, () => bark[0]);
-    const wax = pack(mix([214, 160, 60], sky.light, 0.2));
-    f.hline(s.hiveX - 2, s.hiveX + 2, dy + 3, wax);
-    f.px(s.hiveX, dy + 4, wax);
-    s.door = { x: s.hiveX, y: dy + 2 };
+    const leaf = LEAF.tones(sky);
+    const blossom = pack(mix([250, 236, 214], sky.light, 0.2));
+    const r = rng(this.seed * 5 + 3);
+    const blobs = Array.from({ length: 10 }, () => ({
+      x: s.hiveX + (r() - 0.5) * this.hS * 0.46,
+      y: crownY - this.hS * 0.08 + (r() - 0.6) * this.hS * 0.2,
+      rx: this.hS * (0.07 + r() * 0.06),
+      ry: this.hS * (0.05 + r() * 0.05),
+    }));
+    foliage(f, blobs, [pack(mix(unpack(LEAF_DEEP.tones(sky)[0]), sky.ink, 0.15)), LEAF_DEEP.tones(sky)[2], leaf[2], leaf[3]], this.sunX, this.seed + 2, { tone: blossom, rate: 0.16 });
+    // The colony's doorway: a single dark hollow low on the trunk.
+    const dy = Math.round(this.hS - this.hS * 0.2);
+    f.ellipse(s.hiveX + this.sunSide, dy, 1.6, 2.6, () => bark[0]);
+    s.door = { x: s.hiveX + this.sunSide, y: dy };
+  }
+
+  /** A flowering shrub the hummingbird works, massed behind the foxglove spikes. */
+  private paintThicket(f: Frame, sky: Sky) {
+    const L = this.L;
+    const leaf = LEAF.tones(sky);
+    const bloom = FOXGLOVE.tones(sky)[3];
+    const r = rng(this.seed * 3 + 1);
+    const base = this.hS - 2;
+    const blobs = Array.from({ length: 9 }, () => ({
+      x: L.stageX + (r() - 0.5) * L.stageW * 0.42,
+      y: base - this.hS * (0.05 + r() * 0.09),
+      rx: this.hS * (0.06 + r() * 0.06),
+      ry: this.hS * (0.04 + r() * 0.05),
+    }));
+    foliage(f, blobs, [pack(mix(unpack(LEAF_DEEP.tones(sky)[0]), sky.ink, 0.15)), LEAF_DEEP.tones(sky)[2], leaf[2], leaf[3]], this.sunX, this.seed + 4, { tone: bloom, rate: 0.1 });
   }
 
   private paintWood(f: Frame, sky: Sky) {
@@ -695,7 +733,8 @@ export class ForestScene {
     switch (this.spec.kind) {
       case 'meadow': {
         const d = s.deer;
-        drawDeer(f, sky, d.x, this.gy[Math.max(0, Math.min(this.W - 1, Math.round(d.x)))], d.dir, d as DeerPose, this.sunSide);
+        const gy = this.gy[Math.max(0, Math.min(this.W - 1, Math.round(d.x)))];
+        this.figure(f, sky, Math.round(d.x) - 30, gy - 44, 60, 48, (g) => drawDeer(g, sky, d.x, gy, d.dir, d as DeerPose, this.sunSide));
         this.paintWater(f, sky, s.pondTop, s.pondBot, i.t, 0);
         this.paintReeds(f, sky, s.pondBot, i.t);
         break;
@@ -729,6 +768,82 @@ export class ForestScene {
     const waterScene = this.spec.kind === 'beavers' || this.spec.kind === 'bear';
     if (!waterScene) this.paintGrass(f, sky, i);
     if (this.spec.kind === 'fireflies') this.paintFerns(f, sky, i.t);
+    else this.foreground(f, sky, i.t);
+  }
+
+  /**
+   * Draw a figure on its own layer, then trace one continuous line of rim
+   * light along its sunward edge, the way a low sun outlines an animal.
+   */
+  private figure(f: Frame, sky: Sky, x0: number, y0: number, w: number, h: number, draw: (g: Frame) => void) {
+    const g = this.scratch;
+    const xa = Math.max(0, x0);
+    const xb = Math.min(this.W, x0 + w);
+    const ya = Math.max(0, y0);
+    const yb = Math.min(this.H, y0 + h);
+    for (let y = ya; y < yb; y++) g.buf.fill(0, y * this.W + xa, y * this.W + xb);
+    draw(g);
+    const rimOn = sky.backlit > 0.3;
+    const rim = pack(mix(sky.sun, sky.light, 0.25));
+    const top = pack(mix(sky.light, sky.glow, 0.3));
+    const s = this.sunSide;
+    for (let y = ya; y < yb; y++) {
+      for (let x = xa; x < xb; x++) {
+        const v = g.buf[y * this.W + x];
+        if (!v) continue;
+        let c = v;
+        if (rimOn && !g.get(x + s, y)) c = rim;
+        else if (rimOn && !g.get(x, y - 1) && !g.get(x + s, y - 1)) c = top;
+        f.buf[y * this.W + x] = c;
+      }
+    }
+  }
+
+  /** Slanting shafts of sunlight, dithered into whatever lies behind. */
+  private shafts(f: Frame, sky: Sky, count: number, strength: number) {
+    const c = mix(sky.glow, sky.light, 0.5);
+    const sy = this.sunY(this.spec.hour);
+    for (let k = 0; k < count; k++) {
+      const spread = (k - (count - 1) / 2) * 0.35;
+      const w = 4 + k * 3;
+      for (let y = Math.max(0, sy); y < this.hS; y++) {
+        const d = y - sy;
+        const cx = this.sunX - this.sunSide * d * (0.45 + spread) ;
+        const fade = 1 - d / (this.hS - sy + 1);
+        for (let x = Math.round(cx); x < cx + w; x++) {
+          if (bayer(x, y) / 16 < strength * fade) f.px(x, y, blend(f.get(x, y), c, 0.22));
+        }
+      }
+    }
+  }
+
+  /** Dark stems and blades close to the camera, framing the stage's far corner. */
+  private foreground(f: Frame, sky: Sky, t: number) {
+    const { W, H } = this;
+    const side = this.L.textSide === 'left' ? 1 : this.L.textSide === 'right' ? -1 : 1;
+    const dark = pack(mix(sky.ink, sky.shade, 0.25));
+    const edge = pack(mix(mix(sky.ink, sky.shade, 0.25), sky.glow, 0.35));
+    const n = Math.round(W * 0.07) + 6;
+    for (let i = 0; i < n; i++) {
+      const u = hash(i, 11, this.seed);
+      const x0 = side > 0 ? W - 1 - Math.round(u * u * W * 0.14) : Math.round(u * u * W * 0.14);
+      const h = Math.round(H * (0.12 + hash(i, 12, this.seed) * 0.2) * (1 - u * 0.6));
+      const lean = (hash(i, 13, this.seed) - 0.5) * 0.6 - side * 0.25;
+      const sway = wind(x0, t, W) * 0.08;
+      for (let j = 0; j < h; j++) {
+        const k = j / h;
+        const x = Math.round(x0 + (lean + sway) * j * k * 0.9);
+        const y = H - j;
+        f.px(x, y, dark);
+        if (k < 0.6) f.px(x + 1, y, dark);
+        if (k > 0.3 && hash(i, j, 3) < 0.2) f.px(x - this.sunSide, y, edge);
+      }
+      // Seed heads on a few stems.
+      if (hash(i, 14, this.seed) < 0.3) {
+        const x = Math.round(x0 + (lean + sway) * h * 0.9);
+        f.rect(x - 1, H - h - 2, 2, 3, dark);
+      }
+    }
   }
 
   private paintClouds(f: Frame, sky: Sky, t: number) {
@@ -762,16 +877,21 @@ export class ForestScene {
     const heavy = this.spec.hour < 8 || this.spec.hour > 17.5;
     if (!heavy) return;
     const { W } = this;
-    const mist = mix(sky.haze, sky.light, 0.35);
-    for (let k = 0; k < 3; k++) {
-      const y = Math.round(this.hS - this.hS * (0.06 + k * 0.07));
-      const len = W * (0.4 + hash(k, 5, this.seed) * 0.4);
-      const x0 = ((hash(k, 6, this.seed) * W + t * (1.5 + k)) % (W + len)) - len;
-      for (let x = Math.round(x0); x < x0 + len; x++) {
+    const mist = mix(sky.haze, sky.light, 0.4);
+    // Two banks of low mist lying between the ridges: several rows deep,
+    // densest in the middle, dithered away at the top, bottom and ends.
+    for (let k = 0; k < 2; k++) {
+      const y0 = Math.round(this.hS - this.hS * (0.17 + k * 0.1));
+      const rows = 5 + k;
+      const len = W * (0.5 + hash(k, 5, this.seed) * 0.4);
+      const x0 = ((hash(k, 6, this.seed) * W + t * (1.2 + k * 0.8)) % (W + len)) - len;
+      for (let x = Math.max(0, Math.round(x0)); x < Math.min(W, x0 + len); x++) {
         const u = (x - x0) / len;
-        const k2 = Math.min(u, 1 - u) * 6;
-        for (let j = 0; j < 2; j++) {
-          if (bayer(x, y + j) / 16 < Math.min(0.55, k2) - j * 0.2) f.px(x, y + j, blend(f.get(x, y + j), mist, 0.45));
+        const ends = Math.min(1, Math.min(u, 1 - u) * 5);
+        for (let j = 0; j < rows; j++) {
+          const v = 1 - Math.abs(j - (rows - 1) / 2) / ((rows + 1) / 2);
+          const density = ends * v * 0.75;
+          if (bayer(x, y0 + j) / 16 < density) f.px(x, y0 + j, blend(f.get(x, y0 + j), mist, 0.4));
         }
       }
     }
@@ -1387,8 +1507,10 @@ export class ForestScene {
         continue;
       }
       const speed = 16;
-      b.x += (dx / d) * speed * dt;
-      b.y += (dy / d) * speed * dt + Math.sin(i.t * 9 + b.seed) * 0.35;
+      b.vx = (dx / d) * speed;
+      b.vy = (dy / d) * speed;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt + Math.sin(i.t * 9 + b.seed) * 0.35;
     }
   }
 
@@ -1419,6 +1541,15 @@ export class ForestScene {
     const pollen = pack([255, 170, 40]);
     for (const b of s.bees) {
       if (b.wait > 0 && Math.hypot(b.x - s.hiveX, b.y - (this.hS - s.hiveH * 0.65)) < 3) continue;
+      // A faint flight line behind each bee, so its path reads across the meadow.
+      if (b.wait <= 0 && b.vx !== undefined) {
+        const trail = mix(sky.light, [255, 230, 150], 0.3);
+        for (let k = 2; k <= 6; k += 2) {
+          const tx = b.x - b.vx * 0.04 * k;
+          const ty = b.y - b.vy * 0.04 * k;
+          f.px(tx, ty, blend(f.get(tx, ty), trail, 0.5 - k * 0.06));
+        }
+      }
       drawBee(f, b.x, b.y, Math.floor(t * 24 + b.seed), b.pollen, gold, dark, wing, pollen);
     }
   }

@@ -96,7 +96,10 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     const r = sec.el.getBoundingClientRect();
     const c = sec.copy?.getBoundingClientRect();
     let textSide: Layout['textSide'] = 'left';
-    let groundY = Math.round(H * 0.78);
+    // Each clearing has its own camera height: low for the flowers (more sky),
+    // high for the falls, so no two stops share one backdrop.
+    const lift: Record<string, number> = { meadow: 0, beavers: -0.03, squirrels: 0.07, bear: -0.05, hummingbird: 0.09, web: 0.04, bees: 0.02, fireflies: 0.05 };
+    let groundY = Math.round(H * (0.78 + (lift[sec.spec?.kind ?? 'meadow'] ?? 0)));
     let stageX = Math.round(W * 0.66);
     let stageW = Math.round(W * 0.6);
     if (c) {
@@ -185,18 +188,20 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       const x0 = c.left / U;
       const x1 = c.right / U;
       const y0 = c.top / U;
-      // Beside the words: a full-height band of shade, like the dark side of a clearing.
-      // Below them (stacked layouts): the forest floor darkens from just above the copy.
-      const fadeX = Math.max(18, W * 0.22);
-      const fadeY = Math.max(14, H * 0.1);
+      // Shade pools around the words: a long dithered falloff sideways and
+      // above and below the copy, so the sky beyond it is left whole.
+      // Stacked layouts: the forest floor darkens from just above the copy.
+      const y1 = c.bottom / U;
+      const fadeX = Math.max(18, W * 0.2);
+      const fadeY = Math.max(16, H * 0.22);
       const side = s.scene?.L.textSide ?? 'left';
       const bx0 = side === 'right' ? Math.floor(x0 - fadeX) : 0;
       const bx1 = side === 'left' ? Math.ceil(x1 + fadeX) : W;
-      const by0 = side === 'bottom' ? Math.max(0, Math.floor(y0 - fadeY - 6)) : 0;
-      const by1 = H;
+      const by0 = Math.max(0, Math.floor(y0 - fadeY - 4));
+      const by1 = side === 'bottom' ? H : Math.min(H, Math.ceil(y1 + fadeY + 4));
       for (let y = by0; y < by1; y++) {
-        const dy = side === 'bottom' && y < y0 - 4 ? (y0 - 4 - y) / fadeY : 0;
-        const hy = Math.max(0, 1 - dy);
+        const dy = y < y0 - 2 ? (y0 - 2 - y) / fadeY : side !== 'bottom' && y > y1 + 2 ? (y - y1 - 2) / fadeY : 0;
+        const hy = Math.max(0, 1 - dy) ** 1.3;
         if (hy <= 0) continue;
         const row = y * W;
         for (let x = Math.max(0, bx0); x < Math.min(W, bx1); x++) {
