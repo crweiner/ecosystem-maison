@@ -243,7 +243,6 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
 
   function render(force = false) {
     const where = locate();
-    const sky = skyFor(where.hour);
     const hour = Math.round(where.hour * 20) / 20;
     if (hour !== lastHour || force) {
       lastHour = hour;
@@ -253,27 +252,37 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     const a = where.a;
     const b = where.b && where.b !== a ? where.b : undefined;
     active = [a.scene!, ...(b ? [b.scene!] : [])];
-    ensureBg(a, sky, where.hour);
-    if (b) ensureBg(b, sky, where.hour);
+    // Each clearing is always lit at its own hour: its backdrop is painted once
+    // and never re-tinted while scrolling, so the frame cannot step or flicker.
+    // Time passes behind the wall of trunks, where one clearing swaps for the next.
+    const skyA = skyFor(a.spec!.hour);
+    ensureBg(a, skyA, a.spec!.hour);
+    const skyB = b ? skyFor(b.spec!.hour) : skyA;
+    if (b) ensureBg(b, skyB, b.spec!.hour);
+    let sky = skyA;
 
     if (!b) {
-      a.scene!.paint(frame, a.bg!, sky, input);
+      a.scene!.paint(frame, a.bg!, skyA, input);
     } else if (reduced) {
       // Reduced motion: no wall, a clean cut halfway between clearings.
       const s = where.p < 0.5 ? a : b;
+      sky = where.p < 0.5 ? skyA : skyB;
       s.scene!.paint(frame, s.bg!, sky, input);
     } else {
       const span = wallSpan(W, where.p);
-      a.scene!.paint(frame, a.bg!, sky, input);
+      a.scene!.paint(frame, a.bg!, skyA, input);
       if (span.mid < W) {
-        b.scene!.paint(spare, b.bg!, sky, input);
+        b.scene!.paint(spare, b.bg!, skyB, input);
         const from = Math.max(0, Math.floor(span.mid));
         for (let y = 0; y < H; y++) {
           const row = y * W;
           frame.buf.set(spare.buf.subarray(row + from, row + W), row + from);
         }
       }
+      // Only the moving trunks take the in-between hour, finely stepped.
+      sky = skyAt(Math.round(where.hour * 100) / 100);
       paintWall(frame, sky, where.p, (a.spec?.seed ?? 1) + (b.spec?.seed ?? 2), a.scene!.sunX);
+      if (span.mid < W / 2) sky = skyB;
     }
     shade(sky.ink);
     ctx!.putImageData(image, 0, 0);

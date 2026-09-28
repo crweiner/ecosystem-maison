@@ -64,13 +64,16 @@ const { products } = Astro.props;
   }
 
   /* A pixel square that grows to a bar at the current clearing. */
+  /* Drawn at full length and scaled down at rest, so it grows without relayout. */
   .index__tick {
-    width: calc(var(--px) * 2);
+    width: calc(var(--px) * 5);
     height: calc(var(--px) * 2);
     background: var(--ink-faint);
     box-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.6);
+    transform: scaleX(0.4);
+    transform-origin: right;
     transition:
-      width 200ms steps(3, end),
+      transform 200ms steps(3, end),
       background-color 200ms steps(2, end);
   }
 
@@ -90,7 +93,7 @@ const { products } = Astro.props;
   }
 
   a[aria-current] .index__tick {
-    width: calc(var(--px) * 5);
+    transform: none;
     background: var(--gold);
   }
 
