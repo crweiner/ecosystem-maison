@@ -158,17 +158,30 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     render(true);
   }
 
-  /** Which clearing (or pair of clearings, mid-wall) the viewport is in. */
+  /**
+   * Which clearing (or pair of clearings, mid-wall) the viewport is in. The
+   * wall's passage spans the short treeline gap plus half a screen either
+   * side, so it moves at a calm pace and is entirely off screen whenever a
+   * clearing fills the frame.
+   */
   function locate(): { a: Section; b?: Section; p: number; hour: number } {
     const y = window.scrollY + vh / 2;
+    for (let i = 0; i < sections.length; i++) {
+      const s = sections[i];
+      if (s.kind !== 'trees') continue;
+      const start = s.top - vh / 2;
+      const end = s.top + s.height + vh / 2;
+      if (y < start || y > end) continue;
+      const prev = sections.slice(0, i).reverse().find((x) => x.kind === 'scene') ?? sections.find((x) => x.kind === 'scene')!;
+      const next = sections.slice(i + 1).find((x) => x.kind === 'scene') ?? prev;
+      const p = Math.max(0, Math.min(1, (y - start) / Math.max(1, end - start)));
+      return { a: prev, b: next, p, hour: prev.spec!.hour + (next.spec!.hour - prev.spec!.hour) * p };
+    }
     let i = 0;
     while (i < sections.length - 1 && y >= sections[i + 1].top) i++;
-    const s = sections[i];
-    if (s.kind === 'scene') return { a: s, p: 0, hour: s.spec!.hour };
-    const prev = sections.slice(0, i).reverse().find((x) => x.kind === 'scene') ?? sections.find((x) => x.kind === 'scene')!;
-    const next = sections.slice(i + 1).find((x) => x.kind === 'scene') ?? prev;
-    const p = Math.max(0, Math.min(1, (y - s.top) / Math.max(1, s.height)));
-    return { a: prev, b: next, p, hour: prev.spec!.hour + (next.spec!.hour - prev.spec!.hour) * p };
+    let s = sections[i];
+    if (s.kind !== 'scene') s = sections.slice(0, i).reverse().find((x) => x.kind === 'scene') ?? sections[0];
+    return { a: s, p: 0, hour: s.spec!.hour };
   }
 
   function ensureBg(s: Section, sky: Sky, hour: number) {

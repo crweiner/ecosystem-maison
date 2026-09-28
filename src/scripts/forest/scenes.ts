@@ -1620,91 +1620,143 @@ export class ForestScene {
 /* --------------------------------------------------------- the tree wall */
 
 /**
- * The wall of trunks between two clearings. `p` runs 0..1 as the visitor
- * scrolls; the wall enters from the right, fully covers the frame in the
- * middle (where the scenes swap behind it) and leaves to the left.
+ * The wall of trunks between two clearings. `p` runs 0..1 across the scroll
+ * between clearings: every rank of trunks enters from the right edge exactly
+ * at p = 0 and has left past the left edge exactly at p = 1, so nothing ever
+ * appears or vanishes inside the frame. The two clearings swap along the
+ * middle of the wall, always hidden behind its densest trunks.
  */
+const WALL = 1.5; // base wall width, in frame widths
+const RAMP = 0.35; // thinning at each ragged end, in frame widths
+const RANKS = [
+  // Far trunks: thin, hazed into the forest's depth, slower.
+  { speed: 0.8, shade: 0.45, ink: 0.1, wMin: 3, wFrac: 0.03, gap: 5, keep: 1.4, rim: false },
+  // Middle trunks.
+  { speed: 1, shade: 0.2, ink: 0.25, wMin: 6, wFrac: 0.05, gap: 7, keep: 1.25, rim: false },
+  // Near trunks: wide and dark, faster; only these catch a thin rim of light.
+  { speed: 1.25, shade: 0, ink: 0.5, wMin: 12, wFrac: 0.09, gap: 26, keep: 0.9, rim: true },
+];
+
+interface Trunk {
+  u: number;
+  w: number;
+  stub: null | { y: number; dir: number; len: number };
+  flare: number;
+}
+
+/** Trunk layouts are made once per wall and frame size, never re-rolled while scrolling. */
+const trunkCache = new Map<string, Trunk[][]>();
+
+function trunksFor(seed: number, W: number, H: number): Trunk[][] {
+  const key = `${seed}:${W}:${H}`;
+  const hit = trunkCache.get(key);
+  if (hit) return hit;
+  const ranks = RANKS.map((rk, ri) => {
+    const r = rng(seed * 131 + ri * 17 + 7);
+    const width = W * WALL * rk.speed;
+    const ramp = W * RAMP * rk.speed;
+    const density = (u: number) => Math.max(0, Math.min(1, Math.min(u, width - u) / ramp));
+    const out: Trunk[] = [];
+    for (let u = 0; u < width; ) {
+      // Every trunk draws the same number of random values, kept or not.
+      const w = Math.round(rk.wMin + r() * W * rk.wFrac);
+      const gapR = r();
+      const keepR = r();
+      const stubR = r();
+      const stubY = r();
+      const stubDir = r();
+      const stubLen = r();
+      const gap = Math.round(2 + gapR * rk.gap * (1.3 - density(u)));
+      if (keepR < density(u + w / 2) * rk.keep) {
+        out.push({
+          u,
+          w,
+          flare: ri === 2 ? 5 : 2,
+          stub: stubR < 0.4 ? { y: Math.round(H * (0.25 + stubY * 0.4)), dir: stubDir < 0.5 ? -1 : 1, len: 3 + Math.round(stubLen * w * 0.5) } : null,
+        });
+      }
+      u += w + gap;
+    }
+    return out;
+  });
+  if (trunkCache.size > 24) trunkCache.clear();
+  trunkCache.set(key, ranks);
+  return ranks;
+}
+
+/** Where the (middle rank of the) wall stands on screen at progress p. */
 export function wallSpan(W: number, p: number): { left: number; mid: number; right: number } {
-  const width = W * 2.4;
+  const width = W * WALL;
   const left = W - p * (W + width);
   return { left, mid: left + width / 2, right: left + width };
 }
+
+const WALL_BARK = new Material(hex('#4a3a2c'));
+const WALL_LEAF = new Material(hex('#27462a'));
 
 export function paintWall(f: Frame, sky: Sky, p: number, seed: number, sunX: number) {
   const { w: W, h: H } = f;
   const span = wallSpan(W, p);
   const width = span.right - span.left;
-  const ramp = W * 0.45;
+  const ramp = W * RAMP;
   const density = (u: number) => Math.max(0, Math.min(1, Math.min(u, width - u) / ramp));
   const sunSide = sunX > W / 2 ? 1 : -1;
-  const barkBase = new Material(hex('#4a3a2c')).tones(sky);
-  const deepLeaf = new Material(hex('#27462a')).tones(sky);
-  const glow = pack(mix(sky.glow, sky.light, 0.35));
+  const barkBase = WALL_BARK.tones(sky);
+  const deepLeaf = WALL_LEAF.tones(sky);
 
-  // The forest's depth: a hazed understory where the wall is dense, lit by a few far shafts.
-  const depthC = mix(mix(sky.shade, sky.haze, 0.35), [30, 48, 34], 0.25);
+  // The forest's depth where the wall is dense. The dither is anchored to the
+  // wall itself (not the screen), so it travels with the trees instead of crawling.
+  const depthC = mix(mix(sky.shade, sky.ink, 0.35), [30, 46, 34], 0.25);
   const depthDark = mix(depthC, sky.ink, 0.45);
+  const offset = Math.floor(span.left);
   for (let x = 0; x < W; x++) {
-    const u = x - span.left;
+    const u = x - offset;
     if (u < 0 || u > width) continue;
     const d = density(u);
     if (d < 0.55) continue;
     const k = Math.min(1, (d - 0.55) / 0.4);
     for (let y = 0; y < H; y++) {
-      if (bayer(x, y) / 16 >= k) continue;
+      if (bayer(u, y) / 16 >= k) continue;
       const v = y / H;
       f.px(x, y, pack(v < 0.55 ? depthC : mix(depthC, depthDark, (v - 0.55) * 2.2)));
     }
   }
 
-  // Three ranks of trunks. Far ones are thin and hazed and drift slowly; near ones
-  // are wide and dark and sweep past faster, so the wall has depth as it passes.
-  const ranks = [
-    { speed: 0.82, haze: 0.5, ink: 0.05, wMin: 3, wMax: W * 0.03 + 4, gap: 5, keep: 1.4 },
-    { speed: 1, haze: 0.2, ink: 0.2, wMin: 6, wMax: W * 0.05 + 8, gap: 7, keep: 1.25 },
-    { speed: 1.22, haze: 0, ink: 0.5, wMin: 12, wMax: W * 0.09 + 12, gap: 26, keep: 0.9 },
-  ];
-  ranks.forEach((rk, ri) => {
-    const r = rng(seed * 131 + ri * 17 + 7);
-    const tones = hazeTones(hazeTones(barkBase, sky.haze, rk.haze), sky.ink, rk.ink);
-    tones[4] = glow;
-    const left = W - p * (W + width) * rk.speed + (rk.speed - 1) * W * 0.5;
-    for (let u = 0; u < width; ) {
-      const w = Math.round(rk.wMin + r() * (rk.wMax - rk.wMin));
-      const gap = Math.round(2 + r() * rk.gap * (1.3 - density(u)));
-      const keep = r() < density(u + w / 2) * rk.keep;
-      const x = Math.round(left + u);
-      if (keep && x + w > -8 && x < W + 8) {
-        trunk(f, x, w, 0, H, tones, sunSide, seed + ri * 1000 + Math.round(u), { rim: ri > 0, flare: ri === 2 ? 5 : 2 });
-        // A broken branch stub now and then.
-        if (r() < 0.4) {
-          const by = Math.round(H * (0.25 + r() * 0.4));
-          const dir = r() < 0.5 ? -1 : 1;
-          const len = 3 + Math.round(r() * w * 0.5);
-          for (let k = 0; k < len; k++) f.px(dir > 0 ? x + w + k : x - 1 - k, by - Math.round(k * 0.6), tones[k === 0 ? 1 : 2]);
-        }
-      } else if (!keep) {
-        r();
+  const ranks = trunksFor(seed, W, H);
+  RANKS.forEach((rk, ri) => {
+    const tones = hazeTones(hazeTones(barkBase, sky.shade, rk.shade), sky.ink, rk.ink);
+    // A soft rim: bark lit by the glow, not a white line, so passing trunks never strobe.
+    tones[4] = pack(mix(unpack(tones[3]), sky.glow, 0.45));
+    const widthR = W * WALL * rk.speed;
+    // Roots and branch stubs reach up to PAD pixels beyond a trunk, so each
+    // rank starts and ends its run that far outside the frame.
+    const PAD = 24 + Math.ceil(W * 0.06);
+    const left = Math.floor(W + PAD - p * (W + widthR + PAD * 2));
+    for (const t of ranks[ri]) {
+      const x = left + Math.round(t.u);
+      if (x + t.w + 8 < 0 || x - 8 > W) continue;
+      trunk(f, x, t.w, 0, H, tones, sunSide, seed + ri * 1000 + Math.round(t.u), { rim: rk.rim, flare: t.flare });
+      if (t.stub) {
+        for (let k = 0; k < t.stub.len; k++) f.px(t.stub.dir > 0 ? x + t.w + k : x - 1 - k, t.stub.y - Math.round(k * 0.6), tones[k === 0 ? 1 : 2]);
       }
-      u += w + gap;
     }
   });
 
-  // The canopy closing overhead, and ferns at the trunks' feet.
+  // The canopy closing overhead, and ferns at the trunks' feet, both in wall space.
   const leafTones = [pack(mix(unpack(deepLeaf[0]), sky.ink, 0.3)), deepLeaf[0], deepLeaf[1], deepLeaf[2]];
   for (let x = 0; x < W; x++) {
-    const u = x - span.left;
+    const u = x - offset;
     if (u < 0 || u > width) continue;
     const d = density(u);
     const depth = H * (0.06 + d * 0.2) + noise1(u * 0.09, seed) * H * 0.08;
     for (let y = 0; y < depth + 3; y++) {
       const edge = depth - y;
-      if (edge < 3 && bayer(x, y) / 16 > edge / 3) continue;
+      if (edge < 3 && bayer(u, y) / 16 > edge / 3) continue;
       const clump = noise2(u * 0.22, y * 0.3, seed + 3);
       const t = edge < 4 && clump > 0.55 ? 3 : clump > 0.7 ? 2 : y < depth * 0.5 ? 0 : 1;
       f.px(x, y, leafTones[t]);
     }
     const fern = Math.round(H * 0.05 * d + noise1(u * 0.2, seed + 5) * H * 0.05 * d);
-    for (let y = H - fern; y < H; y++) if (bayer(x, y) < 12) f.px(x, y, leafTones[(x + y) % 5 === 0 ? 2 : 1]);
+    for (let y = H - fern; y < H; y++) if (bayer(u, y) < 12) f.px(x, y, leafTones[(u + y) % 5 === 0 ? 2 : 1]);
   }
 }
