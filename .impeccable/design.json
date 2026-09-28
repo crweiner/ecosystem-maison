@@ -1,0 +1,649 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T21:55:08.822Z",
+  "title": "Design System: ecosystem.maison",
+  "extensions": {
+    "colorMeta": {
+      "gold": {
+        "role": "primary",
+        "displayName": "Sun Gold",
+        "canonical": "oklch(87.5% 0.143 87)",
+        "tonalRamp": [
+          "oklch(15.0% 0.072 87)",
+          "oklch(25.0% 0.143 87)",
+          "oklch(35.0% 0.143 87)",
+          "oklch(48.0% 0.143 87)",
+          "oklch(60.0% 0.143 87)",
+          "oklch(72.0% 0.143 87)",
+          "oklch(84.0% 0.143 87)",
+          "oklch(95.0% 0.072 87)"
+        ]
+      },
+      "gold-bright": {
+        "role": "primary",
+        "displayName": "Morning Gold",
+        "canonical": "oklch(92.3% 0.096 89)",
+        "tonalRamp": [
+          "oklch(15.0% 0.048 89)",
+          "oklch(25.0% 0.096 89)",
+          "oklch(35.0% 0.096 89)",
+          "oklch(48.0% 0.096 89)",
+          "oklch(60.0% 0.096 89)",
+          "oklch(72.0% 0.096 89)",
+          "oklch(84.0% 0.096 89)",
+          "oklch(95.0% 0.048 89)"
+        ]
+      },
+      "gold-deep": {
+        "role": "primary",
+        "displayName": "Burnt Umber",
+        "canonical": "oklch(53.0% 0.114 62)",
+        "tonalRamp": [
+          "oklch(15.0% 0.057 62)",
+          "oklch(25.0% 0.114 62)",
+          "oklch(35.0% 0.114 62)",
+          "oklch(48.0% 0.114 62)",
+          "oklch(60.0% 0.114 62)",
+          "oklch(72.0% 0.114 62)",
+          "oklch(84.0% 0.114 62)",
+          "oklch(95.0% 0.057 62)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Cream Ink",
+        "canonical": "oklch(95.7% 0.020 85)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 85)",
+          "oklch(25.0% 0.020 85)",
+          "oklch(35.0% 0.020 85)",
+          "oklch(48.0% 0.020 85)",
+          "oklch(60.0% 0.020 85)",
+          "oklch(72.0% 0.020 85)",
+          "oklch(84.0% 0.020 85)",
+          "oklch(95.0% 0.010 85)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "oklch(88.0% 0.032 83)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 83)",
+          "oklch(25.0% 0.032 83)",
+          "oklch(35.0% 0.032 83)",
+          "oklch(48.0% 0.032 83)",
+          "oklch(60.0% 0.032 83)",
+          "oklch(72.0% 0.032 83)",
+          "oklch(84.0% 0.032 83)",
+          "oklch(95.0% 0.016 83)"
+        ]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "oklch(95.7% 0.020 85 / 0.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.010 85)",
+          "oklch(25.0% 0.020 85)",
+          "oklch(35.0% 0.020 85)",
+          "oklch(48.0% 0.020 85)",
+          "oklch(60.0% 0.020 85)",
+          "oklch(72.0% 0.020 85)",
+          "oklch(84.0% 0.020 85)",
+          "oklch(95.0% 0.010 85)"
+        ]
+      },
+      "night": {
+        "role": "neutral",
+        "displayName": "Night",
+        "canonical": "oklch(16.4% 0.019 284)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 284)",
+          "oklch(25.0% 0.019 284)",
+          "oklch(35.0% 0.019 284)",
+          "oklch(48.0% 0.019 284)",
+          "oklch(60.0% 0.019 284)",
+          "oklch(72.0% 0.019 284)",
+          "oklch(84.0% 0.019 284)",
+          "oklch(95.0% 0.009 284)"
+        ]
+      },
+      "night-veil": {
+        "role": "neutral",
+        "displayName": "Night Veil",
+        "canonical": "oklch(16.4% 0.019 284 / 0.55)",
+        "tonalRamp": [
+          "oklch(15.0% 0.009 284)",
+          "oklch(25.0% 0.019 284)",
+          "oklch(35.0% 0.019 284)",
+          "oklch(48.0% 0.019 284)",
+          "oklch(60.0% 0.019 284)",
+          "oklch(72.0% 0.019 284)",
+          "oklch(84.0% 0.019 284)",
+          "oklch(95.0% 0.009 284)"
+        ]
+      },
+      "earth": {
+        "role": "neutral",
+        "displayName": "Forest Floor",
+        "canonical": "oklch(17.8% 0.013 300)",
+        "tonalRamp": [
+          "oklch(15.0% 0.006 300)",
+          "oklch(25.0% 0.013 300)",
+          "oklch(35.0% 0.013 300)",
+          "oklch(48.0% 0.013 300)",
+          "oklch(60.0% 0.013 300)",
+          "oklch(72.0% 0.013 300)",
+          "oklch(84.0% 0.013 300)",
+          "oklch(95.0% 0.006 300)"
+        ]
+      },
+      "drop": {
+        "role": "neutral",
+        "displayName": "Drop",
+        "canonical": "oklch(13.8% 0.013 285 / 0.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.007 285)",
+          "oklch(25.0% 0.013 285)",
+          "oklch(35.0% 0.013 285)",
+          "oklch(48.0% 0.013 285)",
+          "oklch(60.0% 0.013 285)",
+          "oklch(72.0% 0.013 285)",
+          "oklch(84.0% 0.013 285)",
+          "oklch(95.0% 0.007 285)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus (Morning Gold)",
+        "canonical": "oklch(92.3% 0.096 89)",
+        "tonalRamp": [
+          "oklch(15.0% 0.048 89)",
+          "oklch(25.0% 0.096 89)",
+          "oklch(35.0% 0.096 89)",
+          "oklch(48.0% 0.096 89)",
+          "oklch(60.0% 0.096 89)",
+          "oklch(72.0% 0.096 89)",
+          "oklch(84.0% 0.096 89)",
+          "oklch(95.0% 0.048 89)"
+        ]
+      },
+      "dawn-plum": {
+        "role": "neutral",
+        "displayName": "Dawn Plum",
+        "canonical": "oklch(25.9% 0.064 303)",
+        "tonalRamp": [
+          "oklch(15.0% 0.032 303)",
+          "oklch(25.0% 0.064 303)",
+          "oklch(35.0% 0.064 303)",
+          "oklch(48.0% 0.064 303)",
+          "oklch(60.0% 0.064 303)",
+          "oklch(72.0% 0.064 303)",
+          "oklch(84.0% 0.064 303)",
+          "oklch(95.0% 0.032 303)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero title only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Close title and utility-page titles."
+      },
+      "verse": {
+        "displayName": "Verse",
+        "purpose": "Haikus, one verse per line, stepped in; never smaller than the tagline."
+      },
+      "title": {
+        "displayName": "Lede",
+        "purpose": "Hero lede and stop taglines, in ink-soft."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text on utility pages."
+      },
+      "label": {
+        "displayName": "Plate Label",
+        "purpose": "Labels on pixel plates."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Wordmark, colophon, index labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "type-drop",
+        "value": "0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7)",
+        "purpose": "text-shadow on every word: type set into the scene."
+      },
+      {
+        "name": "plate-floor",
+        "value": "drop-shadow(0 var(--px) 0 var(--gold-deep))",
+        "purpose": "filter on the primary plate; the ghost plate uses rgb(8 8 14 / 0.6). Removed on press."
+      },
+      {
+        "name": "mark-drop",
+        "value": "drop-shadow(0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.55))",
+        "purpose": "Product logos, sun mark (0.6), index ticks (0.6)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "plate-press",
+        "value": "120ms steps(2, end)",
+        "purpose": "Plate press (translateY one --px) and floor removal."
+      },
+      {
+        "name": "index-step",
+        "value": "200ms steps(3, end)",
+        "purpose": "Index label reveal and tick growth."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Index fade (240ms) and page fade while the deer runs (360ms)."
+      },
+      {
+        "name": "deer-run",
+        "value": "<= 1300ms",
+        "purpose": "Random jump: the deer bounds off the right edge, then the page leaves. Reduced motion or no canvas: leave after 600ms."
+      },
+      {
+        "name": "scroll-clock",
+        "value": "hour interpolated by scroll, quantized to 1/20 hour",
+        "purpose": "The sky, sun mark and lighting advance exactly with scroll; trunk wall 2.4 frames wide crosses each 125svh gap."
+      },
+      {
+        "name": "wind",
+        "value": "one shared wind(x, t) function",
+        "purpose": "A slow sway plus gusts that roll across grass, flowers, reeds and crowns in every layer."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "No wall (clean cut between clearings), no stepped transitions, instant scroll."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stacked",
+        "value": "max-width: 759px, or portrait and max-width: 1099px"
+      },
+      {
+        "name": "mid",
+        "value": "max-width: 1099px"
+      },
+      {
+        "name": "short-landscape",
+        "value": "orientation: landscape and max-height: 520px"
+      },
+      {
+        "name": "coarse-pointer",
+        "value": "pointer: coarse"
+      }
+    ],
+    "pixelUnit": {
+      "token": "--px",
+      "rule": "round(vh / 150), limited to floor(vw / 110), clamped 2 to 10 CSS px; default 4px before the engine runs",
+      "rendering": "nearest-neighbour, image-rendering: pixelated"
+    },
+    "materialTones": {
+      "source": "src/scripts/forest/color.ts Material",
+      "tones": [
+        "deep shade (mix toward sky.ink 0.62)",
+        "shade (mix toward sky.shade 0.42)",
+        "base (albedo tinted by sky.light, dimmed, pulled to silhouette by backlit)",
+        "lit",
+        "rim (sun mixed with light; one pixel on the sunward contour)"
+      ]
+    },
+    "dither": {
+      "matrix": "4x4 Bayer",
+      "values": [
+        0,
+        8,
+        2,
+        10,
+        12,
+        4,
+        14,
+        6,
+        3,
+        11,
+        1,
+        9,
+        15,
+        7,
+        13,
+        5
+      ]
+    },
+    "dayPalette": [
+      {
+        "hour": 5.4,
+        "colors": {
+          "top": "#120f28",
+          "upper": "#221a3e",
+          "lower": "#44305a",
+          "horizon": "#8a4c66",
+          "sun": "#ffc98a",
+          "glow": "#b0586a",
+          "haze": "#5a4264",
+          "far": "#3a2e52",
+          "ridge": "#241f38",
+          "light": "#b98a9a",
+          "shade": "#1a1530",
+          "grass": "#243a36",
+          "ink": "#0a0b12",
+          "water": "#1a1a34"
+        },
+        "dim": 0.9,
+        "backlit": 0.9
+      },
+      {
+        "hour": 6.2,
+        "colors": {
+          "top": "#2e1d46",
+          "upper": "#6a3664",
+          "lower": "#d4667a",
+          "horizon": "#ff9468",
+          "sun": "#fff4d2",
+          "glow": "#ffb070",
+          "haze": "#b98284",
+          "far": "#6d4d6c",
+          "ridge": "#3c3350",
+          "light": "#ffc09a",
+          "shade": "#2a2140",
+          "grass": "#3d5a3e",
+          "ink": "#0d0d16",
+          "water": "#3a2e52"
+        },
+        "dim": 0.45,
+        "backlit": 1
+      },
+      {
+        "hour": 7.4,
+        "colors": {
+          "top": "#34528e",
+          "upper": "#5c7fb4",
+          "lower": "#b0b6c8",
+          "horizon": "#f5cf9a",
+          "sun": "#fff8e0",
+          "glow": "#fbe0a6",
+          "haze": "#a9b4c4",
+          "far": "#7f8fa8",
+          "ridge": "#556a7e",
+          "light": "#ffe6c0",
+          "shade": "#2e3a52",
+          "grass": "#557f3c",
+          "ink": "#0e1318",
+          "water": "#34507a"
+        },
+        "dim": 0.2,
+        "backlit": 0.55
+      },
+      {
+        "hour": 10,
+        "colors": {
+          "top": "#2f6cc0",
+          "upper": "#5494d8",
+          "lower": "#98c6e8",
+          "horizon": "#d6ecf2",
+          "sun": "#fffef4",
+          "glow": "#eaf6f8",
+          "haze": "#b2d0e0",
+          "far": "#84a8c0",
+          "ridge": "#5b8490",
+          "light": "#fff6e0",
+          "shade": "#2c4458",
+          "grass": "#6a9e44",
+          "ink": "#0f161a",
+          "water": "#3a6d96"
+        },
+        "dim": 0,
+        "backlit": 0.12
+      },
+      {
+        "hour": 13,
+        "colors": {
+          "top": "#2a66bd",
+          "upper": "#4f92dc",
+          "lower": "#94c8ee",
+          "horizon": "#d2eaf4",
+          "sun": "#ffffff",
+          "glow": "#eef8fb",
+          "haze": "#aed0e4",
+          "far": "#7ea8c4",
+          "ridge": "#57868c",
+          "light": "#fffaf0",
+          "shade": "#2a4456",
+          "grass": "#6fa648",
+          "ink": "#0f161a",
+          "water": "#386c98"
+        },
+        "dim": 0,
+        "backlit": 0.08
+      },
+      {
+        "hour": 16,
+        "colors": {
+          "top": "#3868b2",
+          "upper": "#6a98cf",
+          "lower": "#b2cadc",
+          "horizon": "#ecdcb4",
+          "sun": "#fff2cc",
+          "glow": "#f8e4b0",
+          "haze": "#c0c4c0",
+          "far": "#8c9cac",
+          "ridge": "#617a78",
+          "light": "#ffeccc",
+          "shade": "#2e3e50",
+          "grass": "#77973f",
+          "ink": "#10151a",
+          "water": "#3e6488"
+        },
+        "dim": 0.08,
+        "backlit": 0.3
+      },
+      {
+        "hour": 17.9,
+        "colors": {
+          "top": "#34457f",
+          "upper": "#6d6a9c",
+          "lower": "#cf8e78",
+          "horizon": "#f5b25e",
+          "sun": "#ffe196",
+          "glow": "#ffbf66",
+          "haze": "#c28e7e",
+          "far": "#836878",
+          "ridge": "#524a60",
+          "light": "#ffc98a",
+          "shade": "#2c2a46",
+          "grass": "#6a7334",
+          "ink": "#0e0e16",
+          "water": "#4a4a70"
+        },
+        "dim": 0.3,
+        "backlit": 0.75
+      },
+      {
+        "hour": 19.2,
+        "colors": {
+          "top": "#271f4a",
+          "upper": "#5e3564",
+          "lower": "#bf4c66",
+          "horizon": "#f5763e",
+          "sun": "#ffcc6c",
+          "glow": "#ff9446",
+          "haze": "#9c5268",
+          "far": "#5a3858",
+          "ridge": "#352842",
+          "light": "#ff9e6a",
+          "shade": "#241c38",
+          "grass": "#3f3a30",
+          "ink": "#0b0a12",
+          "water": "#3a2448"
+        },
+        "dim": 0.55,
+        "backlit": 1
+      },
+      {
+        "hour": 20,
+        "colors": {
+          "top": "#100f2a",
+          "upper": "#231d46",
+          "lower": "#4e2e58",
+          "horizon": "#9a4656",
+          "sun": "#ff8850",
+          "glow": "#b8504e",
+          "haze": "#4e3452",
+          "far": "#322644",
+          "ridge": "#1f1a30",
+          "light": "#b87a86",
+          "shade": "#15122a",
+          "grass": "#20262a",
+          "ink": "#08080e",
+          "water": "#1c1836"
+        },
+        "dim": 0.85,
+        "backlit": 0.95
+      }
+    ],
+    "sceneHours": {
+      "hero": 6.25,
+      "wordpress-com": 7.4,
+      "woocommerce": 9,
+      "wordpress-vip": 10.8,
+      "jetpack": 12.6,
+      "akismet": 14.4,
+      "newspack": 16.2,
+      "gravatar": 18.1,
+      "close": 19.25
+    },
+    "fallbackSky": [
+      "#1b1433 0 14%",
+      "#2a1b3d 14% 28%",
+      "#3e2750 28% 42%",
+      "#58305e 42% 54%",
+      "#6f3a62 54% 64%",
+      "#2c2440 64% 72%",
+      "#1d2228 72% 80%",
+      "#141418 80% 100%"
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Plate",
+      "kind": "button",
+      "refersTo": "plate-primary",
+      "description": "The random jump: a notched sun-gold plate on a one-pixel burnt-umber floor that presses down when clicked.",
+      "html": "<div class=\"ds-root\"><a class=\"ds-plate\" href=\"#\"><span class=\"ds-plate__face\"><span>Explore a random ecosystem</span><svg viewBox=\"0 0 8 8\" fill=\"currentColor\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect x=\"0\" y=\"3\" width=\"1\" height=\"2\"/><rect x=\"2\" y=\"3\" width=\"3\" height=\"2\"/><rect x=\"5\" y=\"1\" width=\"1\" height=\"6\"/><rect x=\"6\" y=\"2\" width=\"1\" height=\"4\"/><rect x=\"7\" y=\"3\" width=\"1\" height=\"2\"/></svg></span></a></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-plate { --plate-bg: var(--gold); --plate-fg: var(--night); --plate-drop: var(--gold-deep); --c: var(--px); display: inline-flex; min-height: 2.75rem; color: var(--plate-fg); font-family: var(--font-text); font-size: 1.0625rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1.15; text-decoration: none; filter: drop-shadow(0 var(--px) 0 var(--plate-drop)); transition: transform 120ms steps(2, end), filter 120ms steps(2, end); } .ds-plate__face { display: inline-flex; align-items: center; gap: 0.7em; padding: 0.72em 1.15em 0.66em; background: var(--plate-bg); clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, calc(100% - var(--c)) var(--c), 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, var(--c) calc(100% - var(--c)), 0 calc(100% - var(--c)), 0 var(--c), var(--c) var(--c)); } .ds-plate svg { width: calc(var(--px) * 3); min-width: 12px; height: auto; } .ds-plate:hover { --plate-bg: var(--gold-bright); } .ds-plate:active { transform: translateY(var(--px)); filter: drop-shadow(0 0 0 var(--plate-drop)); } .ds-plate:focus-visible { outline: var(--px) solid var(--focus); outline-offset: calc(var(--px) * 1.5); } "
+    },
+    {
+      "name": "Ghost Plate",
+      "kind": "button",
+      "refersTo": "plate-ghost",
+      "description": "Secondary action: a night-veil plate with a one-pixel parchment outline that turns gold on hover.",
+      "html": "<div class=\"ds-root\"><a class=\"ds-plate ds-plate--ghost\" href=\"#\"><span class=\"ds-plate__face\"><span>I want to explore</span><svg viewBox=\"0 0 8 8\" fill=\"currentColor\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect x=\"3\" y=\"0\" width=\"2\" height=\"5\"/><rect x=\"1\" y=\"4\" width=\"6\" height=\"1\"/><rect x=\"2\" y=\"5\" width=\"4\" height=\"1\"/><rect x=\"3\" y=\"6\" width=\"2\" height=\"1\"/><rect x=\"1\" y=\"7\" width=\"6\" height=\"1\"/></svg></span></a></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-plate { --plate-bg: var(--gold); --plate-fg: var(--night); --plate-drop: var(--gold-deep); --c: var(--px); display: inline-flex; min-height: 2.75rem; color: var(--plate-fg); font-family: var(--font-text); font-size: 1.0625rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1.15; text-decoration: none; filter: drop-shadow(0 var(--px) 0 var(--plate-drop)); transition: transform 120ms steps(2, end), filter 120ms steps(2, end); } .ds-plate__face { display: inline-flex; align-items: center; gap: 0.7em; padding: 0.72em 1.15em 0.66em; background: var(--plate-bg); clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, calc(100% - var(--c)) var(--c), 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, var(--c) calc(100% - var(--c)), 0 calc(100% - var(--c)), 0 var(--c), var(--c) var(--c)); } .ds-plate svg { width: calc(var(--px) * 3); min-width: 12px; height: auto; } .ds-plate:hover { --plate-bg: var(--gold-bright); } .ds-plate:active { transform: translateY(var(--px)); filter: drop-shadow(0 0 0 var(--plate-drop)); } .ds-plate:focus-visible { outline: var(--px) solid var(--focus); outline-offset: calc(var(--px) * 1.5); } .ds-plate--ghost { --plate-bg: rgb(13 13 22 / 0.55); --plate-fg: var(--ink); --plate-drop: rgb(8 8 14 / 0.6); } .ds-plate--ghost .ds-plate__face { box-shadow: inset 0 0 0 var(--px) var(--ink-soft); } .ds-plate--ghost:hover { --plate-bg: rgb(13 13 22 / 0.8); --plate-fg: var(--gold-bright); } .ds-plate--ghost:hover .ds-plate__face { box-shadow: inset 0 0 0 var(--px) var(--gold); } "
+    },
+    {
+      "name": "Small Ghost Plate",
+      "kind": "button",
+      "refersTo": "plate-small",
+      "description": "Each stop's outbound link.",
+      "html": "<div class=\"ds-root\"><a class=\"ds-plate ds-plate--ghost ds-plate--small\" href=\"#\"><span class=\"ds-plate__face\"><span>Visit jetpack.com</span><svg viewBox=\"0 0 8 8\" fill=\"currentColor\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect x=\"3\" y=\"0\" width=\"5\" height=\"1\"/><rect x=\"7\" y=\"1\" width=\"1\" height=\"4\"/><rect x=\"5\" y=\"2\" width=\"1\" height=\"1\"/><rect x=\"4\" y=\"3\" width=\"1\" height=\"1\"/><rect x=\"3\" y=\"4\" width=\"1\" height=\"1\"/><rect x=\"2\" y=\"5\" width=\"1\" height=\"1\"/><rect x=\"1\" y=\"6\" width=\"1\" height=\"1\"/><rect x=\"0\" y=\"7\" width=\"1\" height=\"1\"/><rect x=\"6\" y=\"1\" width=\"1\" height=\"2\"/></svg></span></a></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-plate { --plate-bg: var(--gold); --plate-fg: var(--night); --plate-drop: var(--gold-deep); --c: var(--px); display: inline-flex; min-height: 2.75rem; color: var(--plate-fg); font-family: var(--font-text); font-size: 1.0625rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1.15; text-decoration: none; filter: drop-shadow(0 var(--px) 0 var(--plate-drop)); transition: transform 120ms steps(2, end), filter 120ms steps(2, end); } .ds-plate__face { display: inline-flex; align-items: center; gap: 0.7em; padding: 0.72em 1.15em 0.66em; background: var(--plate-bg); clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, calc(100% - var(--c)) var(--c), 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, var(--c) calc(100% - var(--c)), 0 calc(100% - var(--c)), 0 var(--c), var(--c) var(--c)); } .ds-plate svg { width: calc(var(--px) * 3); min-width: 12px; height: auto; } .ds-plate:hover { --plate-bg: var(--gold-bright); } .ds-plate:active { transform: translateY(var(--px)); filter: drop-shadow(0 0 0 var(--plate-drop)); } .ds-plate:focus-visible { outline: var(--px) solid var(--focus); outline-offset: calc(var(--px) * 1.5); } .ds-plate--ghost { --plate-bg: rgb(13 13 22 / 0.55); --plate-fg: var(--ink); --plate-drop: rgb(8 8 14 / 0.6); } .ds-plate--ghost .ds-plate__face { box-shadow: inset 0 0 0 var(--px) var(--ink-soft); } .ds-plate--ghost:hover { --plate-bg: rgb(13 13 22 / 0.8); --plate-fg: var(--gold-bright); } .ds-plate--ghost:hover .ds-plate__face { box-shadow: inset 0 0 0 var(--px) var(--gold); } .ds-plate--small { font-size: 1rem; } .ds-plate--small .ds-plate__face { padding: 0.55em 0.9em 0.5em; } "
+    },
+    {
+      "name": "Stop Index",
+      "kind": "nav",
+      "refersTo": "index-tick",
+      "description": "Fixed right-edge column of pixel ticks; the current clearing grows to a gold bar and names reveal on hover or focus.",
+      "html": "<div class=\"ds-root\"><nav class=\"ds-index\" aria-label=\"Ecosystem products\"><a href=\"#\"><span class=\"ds-index__label\">WordPress.com</span><span class=\"ds-index__tick\"></span></a><a href=\"#\" aria-current=\"location\"><span class=\"ds-index__label\">WooCommerce</span><span class=\"ds-index__tick\"></span></a><a href=\"#\"><span class=\"ds-index__label\">WordPress VIP</span><span class=\"ds-index__tick\"></span></a></nav></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-index { display: grid; gap: 0.125rem; } .ds-index a { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; min-height: 2.25rem; padding-left: 1rem; text-decoration: none; color: var(--ink-soft); } .ds-index__label { font-family: var(--font-pixel); font-size: 0.9375rem; font-weight: 500; opacity: 0; transform: translateX(var(--px)); transition: opacity 200ms steps(3, end), transform 200ms steps(3, end); text-shadow: var(--type-shadow); } .ds-index__tick { width: calc(var(--px) * 2); height: calc(var(--px) * 2); background: var(--ink-faint); box-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.6); transition: width 200ms steps(3, end), background-color 200ms steps(2, end); } .ds-index a:hover .ds-index__label, .ds-index a:focus-visible .ds-index__label { opacity: 1; transform: none; } .ds-index a:hover .ds-index__tick, .ds-index a:focus-visible .ds-index__tick { background: var(--ink); } .ds-index a:focus-visible { outline: var(--px) solid var(--focus); outline-offset: var(--px); } .ds-index a[aria-current] { color: var(--ink); } .ds-index a[aria-current] .ds-index__tick { width: calc(var(--px) * 5); background: var(--gold); } "
+    },
+    {
+      "name": "Stop Copy",
+      "kind": "card",
+      "description": "A clearing's words set straight into the scene: tagline in parchment, stepped haiku in cream Pixelify, no panel.",
+      "html": "<div class=\"ds-root\"><div class=\"ds-stop\"><p class=\"ds-stop__tagline\">Security, performance and growth tools for WordPress sites</p><p class=\"ds-stop__haiku\"><span>Wings too quick to see,</span><span>a hummingbird checks each bloom</span><span>and is gone again</span></p></div></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: block; padding: 32px; background: #2c4458; } .ds-stop { max-width: 31rem; text-shadow: var(--type-shadow); } .ds-stop__tagline { margin: 0 0 1.5rem; max-width: 34ch; font-family: var(--font-text); font-size: 1.0625rem; line-height: 1.45; color: var(--ink-soft); } .ds-stop__haiku { margin: 0; font-family: var(--font-pixel); font-weight: 450; font-size: 1.5rem; line-height: 1.34; color: var(--ink); } .ds-stop__haiku span { display: block; padding-left: calc(var(--step, 0em) + 1em); text-indent: -1em; } .ds-stop__haiku span:nth-child(2) { --step: 1.1em; } .ds-stop__haiku span:nth-child(3) { --step: 0.55em; } "
+    },
+    {
+      "name": "Sun Mark",
+      "kind": "custom",
+      "description": "The masthead clock: a dotted pixel arc with a gold sun that tracks the forest's hour, beside the wordmark.",
+      "html": "<div class=\"ds-root\"><a class=\"ds-mark\" href=\"#\"><svg class=\"ds-sunmark\" viewBox=\"0 0 17 10\" shape-rendering=\"crispEdges\" aria-hidden=\"true\"><rect x=\"1\" y=\"8\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"2\" y=\"5\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"4\" y=\"3\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"8\" y=\"1\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"12\" y=\"2\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"14\" y=\"4\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"15\" y=\"7\" width=\"1\" height=\"1\" fill=\"rgb(247 240 226 / 0.5)\"/><rect x=\"0\" y=\"9\" width=\"17\" height=\"1\" fill=\"#e2d6c0\"/><rect x=\"3\" y=\"3\" width=\"3\" height=\"3\" fill=\"#ffcf5a\"/></svg><span>ecosystem.maison</span></a></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-mark { display: inline-flex; align-items: flex-end; gap: 0.75rem; color: var(--ink); text-decoration: none; text-shadow: var(--type-shadow); font-family: var(--font-pixel); font-size: 0.9375rem; font-weight: 500; letter-spacing: 0.02em; line-height: 1; } .ds-mark:focus-visible { outline: var(--px) solid var(--focus); outline-offset: var(--px); } .ds-sunmark { width: calc(var(--px) * 17); min-width: 34px; height: auto; filter: drop-shadow(0 2px 0 rgb(8 8 14 / 0.6)); } "
+    },
+    {
+      "name": "Wander Status",
+      "kind": "custom",
+      "refersTo": "wander-status",
+      "description": "Live status shown while the deer runs and the page leaves.",
+      "html": "<div class=\"ds-root\"><p class=\"ds-status\" role=\"status\">Following the deer to Akismet</p></div>",
+      "css": ":host, .ds-root { --px: 4px; --ink: #f7f0e2; --ink-soft: #e2d6c0; --ink-faint: rgb(247 240 226 / 0.5); --gold: #ffcf5a; --gold-bright: #ffe39a; --gold-deep: #9a5a14; --night: #0d0d16; --focus: #ffe39a; --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif; --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif; --type-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.7); } .ds-root { display: inline-block; padding: 24px; background: #2a1b3d; } .ds-status { margin: 0; padding: 0.55em 1em 0.5em; font-family: var(--font-pixel); font-size: 1.2rem; font-weight: 600; color: var(--night); background: var(--gold); text-align: center; } "
+    }
+  ],
+  "narrative": {
+    "northStar": "Widescreen Pixel Cinema",
+    "overview": "Every screen is a still from a slow, wordless pixel-art film: small creatures staged in vast, flat-banded light, one clearing per product, walked through a single day from plum dawn to ember dusk. The forest is a fixed canvas behind the page, rendered about 150 world pixels tall and scaled up by a whole number, so each world pixel is a crisp square (the `--px` unit, 2 to 10 CSS px, typically 3 on a small phone and 7 on a 32:9 monitor). The page's own controls, borders, notches, ticks and drop shadows are drawn in that same unit, so a button sits on the same grid as the deer.\n\nThe HTML layer is deliberately quiet: cream ink on the forest, one sun-gold accent, a pixel-grid face for titles and verse, a hyperlegible humanist for reading. There are no cards, panels or surfaces. Words are set directly into the scene with a one-pixel hard drop, and depth comes from the world (haze, ridges, trunks), not from UI chrome. The canvas is an enhancement: without script or canvas the page keeps a still, hard-stepped dawn sky and every action works as a plain link.\n\nThe world refuses the bright, multi-layer parallax \"indie game trailer\" forest: no chunky logo, no Start button, no smooth gradients, no fractional scaling.",
+    "keyCharacteristics": [
+      "One integer pixel unit (`--px`) for sprites, plate borders, notches, shadows and ticks.",
+      "Light in stepped, flat bands; ordered (4x4 Bayer) dither for every transition, shade and mist.",
+      "One continuous sky: nine keyframes from 05:24 to 20:00, advanced exactly by scroll.",
+      "Every canvas color is a material lit by the current sky (five tones: deep shade, shade, base, lit, rim).",
+      "Controls are notched pixel plates that press down into a one-unit hard shadow.",
+      "Cream words, one gold accent, no surfaces behind text."
+    ],
+    "rules": [
+      {
+        "name": "The One Sun Rule",
+        "body": "Gold is the sun's color and the only accent in the HTML layer. It marks the primary action, where you are, and focus. Brand color lives only inside product logos.",
+        "section": "colors"
+      },
+      {
+        "name": "The Lit, Not Painted Rule",
+        "body": "Canvas colors are never picked per scene. A sprite has one albedo and is lit by the sky at its hour through the five-tone Material ramp, so the same deer is plum at dawn and ember at dusk.",
+        "section": "colors"
+      },
+      {
+        "name": "The Voice Rule",
+        "body": "The haiku is the scene's voice and is never set smaller than the tagline on any screen.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Faces Rule",
+        "body": "Pixelify for what the world says, Atkinson for what the visitor reads and presses. Every word on the page carries the one-pixel hard drop (`--type-shadow`); none sits on a panel.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hard Light Rule",
+        "body": "Light falls in stepped, flat bands and shadows are hard. Where the world needs a gradient (sun glow, sky, mist, shade) it steps through dithered bands; no smooth gradient appears on the canvas or in the fallback sky.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** draw every UI edge, notch, tick, outline and shadow in whole multiples of `--px`.",
+      "**Do** light new sprites through the Material ramp from a single albedo; let the sky at the scene's hour color them.",
+      "**Do** step every transition in the world with ordered dither and flat bands; step UI motion too (`steps()` timing for presses and the index).",
+      "**Do** give each new product a clearing with its own creature, an hour in page order, a tagline, a haiku and a tagged link, added as data.",
+      "**Do** keep a still, working page without script, canvas or motion: the stepped fallback sky, plain links, no wall under reduced motion (a clean cut halfway between clearings).",
+      "**Do** use each product's official logo as published, never redrawn."
+    ],
+    "donts": [
+      "**Don't** scale the world by a fractional amount or smooth it (`image-rendering: pixelated`).",
+      "**Don't** use smooth CSS or canvas gradients, blurred shadows or border radii.",
+      "**Don't** put words on cards or panels; words sit in the scene with the type drop.",
+      "**Don't** add a second accent color to the HTML layer; gold is the sun.",
+      "**Don't** add a parallax stack of saturated layers, a chunky logo or a Start button."
+    ]
+  }
+}
