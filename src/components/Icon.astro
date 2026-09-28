@@ -1,14 +1,12 @@
 ---
 /** Pixel icons on an 8×8 grid, drawn in whole squares so they sit on the world's grid. */
 interface Props {
-  name: 'run' | 'down' | 'up' | 'out';
+  name: 'down' | 'up' | 'out';
 }
 const { name } = Astro.props;
 
 // Each icon is a list of filled cells: [x, y, width, height].
 const cells: Record<Props['name'], [number, number, number, number][]> = {
-  // An arrow with a speed line: off it goes.
-  run: [[0, 3, 1, 2], [2, 3, 3, 2], [5, 1, 1, 6], [6, 2, 1, 4], [7, 3, 1, 2]],
   down: [[3, 0, 2, 5], [1, 4, 6, 1], [2, 5, 4, 1], [3, 6, 2, 1], [1, 7, 6, 1]],
   up: [[1, 0, 6, 1], [3, 1, 2, 1], [2, 2, 4, 1], [1, 3, 6, 1], [3, 3, 2, 5]],
   out: [[3, 0, 5, 1], [7, 1, 1, 4], [5, 2, 1, 1], [4, 3, 1, 1], [3, 4, 1, 1], [2, 5, 1, 1], [1, 6, 1, 1], [0, 7, 1, 1], [6, 1, 1, 2]],

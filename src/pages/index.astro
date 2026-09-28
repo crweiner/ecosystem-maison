@@ -30,7 +30,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         <p class="hero__lede">Explore Automattic's ecosystem of WordPress products</p>
         <div class="actions">
           <a class="plate" href="/wander/" data-wander>
-            <span class="plate__face"><span>Explore a random ecosystem</span><Icon name="run" /></span>
+            <span class="plate__face"><span>Explore a random ecosystem<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
           </a>
           <a class="plate plate--ghost" href={`#${first.slug}`}>
             <span class="plate__face"><span>I want to explore</span><Icon name="down" /></span>
@@ -56,7 +56,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         <h2 id="close-title" class="display close__title">Pick a path, any&nbsp;path</h2>
         <div class="actions">
           <a class="plate" href="/wander/" data-wander>
-            <span class="plate__face"><span>Explore a random ecosystem</span><Icon name="run" /></span>
+            <span class="plate__face"><span>Explore a random ecosystem<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
           </a>
           <a class="plate plate--ghost" href="#top">
             <span class="plate__face"><span>Back to the top</span><Icon name="up" /></span>
@@ -68,6 +68,12 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
   </main>
 
   <StopIndex products={products} />
+
+  {/* Where you are in the day: a readout for every screen, including touch, where the index has no labels. */}
+  <p class="whereabouts caption" aria-hidden="true">
+    <span class="whereabouts__n"><span data-where-n>1</span>&thinsp;/&thinsp;{products.length}</span>
+    <span data-where-name>{products[0].name}</span>
+  </p>
 
   <footer class="colophon">
     <p class="caption">
@@ -173,6 +179,9 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
   );
   const hero = document.getElementById('top')!;
   const closing = document.querySelector<HTMLElement>('.close')!;
+  const whereN = document.querySelector<HTMLElement>('[data-where-n]')!;
+  const whereName = document.querySelector<HTMLElement>('[data-where-name]')!;
+  const stopIds = [...links.keys()];
   root.classList.add('at-top');
   const io = new IntersectionObserver(
     (entries) => {
@@ -180,7 +189,10 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         const el = entry.target as HTMLElement;
         if (el === hero) {
           root.classList.toggle('at-top', entry.isIntersecting);
-          if (entry.isIntersecting) links.forEach((l) => l.removeAttribute('aria-current'));
+          if (entry.isIntersecting) {
+            links.forEach((l) => l.removeAttribute('aria-current'));
+            root.classList.remove('has-where');
+          }
           continue;
         }
         if (el === closing) {
@@ -193,6 +205,9 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         if (entry.isIntersecting) {
           links.forEach((l) => l.removeAttribute('aria-current'));
           link.setAttribute('aria-current', 'location');
+          whereN.textContent = String(stopIds.indexOf(el.id) + 1);
+          whereName.textContent = link.textContent?.trim() ?? '';
+          root.classList.add('has-where');
         }
       }
     },
@@ -340,6 +355,38 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
     .close__title {
       font-size: clamp(1.8rem, 12vh, 2.75rem);
+    }
+  }
+
+  /* The day's position, pinned opposite the masthead. */
+  .whereabouts {
+    position: fixed;
+    top: max(clamp(1.25rem, 2.6vw, 2.25rem), env(safe-area-inset-top));
+    right: var(--gutter-right);
+    z-index: 5;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+    margin: 0;
+    color: var(--ink);
+    text-shadow: var(--type-shadow);
+    opacity: 0;
+    transition: opacity 240ms steps(3, end);
+    pointer-events: none;
+  }
+
+  .whereabouts__n {
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(html.has-where:not(.at-close)) .whereabouts {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .whereabouts {
+      transition: none;
     }
   }
 
