@@ -152,6 +152,9 @@ export class ForestScene {
     ];
     for (const [base, amp, freq, haze, kind, pineDensity] of ridgeSet) {
       const pines: Ridge['pines'] = [];
+      // Open meadows (hummingbird, bees) have no dark forest edge, so flowers stand against the haze.
+      const open = spec.kind === 'hummingbird' || spec.kind === 'bees';
+      if (open && kind === 'near') continue;
       if (pineDensity > 0 && spec.kind !== 'fireflies') {
         for (let x = -6; x < W + 6; ) {
           const tall = kind === 'near' ? hs * (0.05 + r() * 0.1) : hs * (0.025 + r() * 0.05);
@@ -212,7 +215,7 @@ export class ForestScene {
         s.waterBot = this.hS + Math.round(L.textSide === 'bottom' ? Math.min(22, Math.max(9, below * 0.26)) : below * 0.62);
         s.lodgeX = L.stageX + toText * -L.stageW * 0.08;
         s.lodgeY = this.hS + 1;
-        s.lodgeR = Math.max(14, Math.min(34, Math.round(L.stageW * 0.17)));
+        s.lodgeR = Math.max(18, Math.min(40, Math.round(L.stageW * 0.22)));
         s.swimY = s.lodgeY + Math.max(3, Math.round((s.waterBot - s.lodgeY) * 0.3));
         s.swimmer = { x: L.stageX - toText * L.stageW * 0.55, dir: toText, t: 0, under: 0 };
         s.builder = { t: r() * 4 };
@@ -521,7 +524,7 @@ export class ForestScene {
       [pack(mix(unpack(LEAF_DEEP.tones(sky)[0]), sky.ink, 0.2)), LEAF_DEEP.tones(sky)[2], leaf[2], leaf[3]],
       this.sunX,
       this.seed,
-      { tone: autumn[3], rate: 0.035 },
+      { tone: autumn[3], rate: 0.02 },
     );
     // The acorn store at the roots.
     for (const p of s.pile) drawAcorn(f, sky, s.trunkX + this.sunSide * -(tw / 2 + 6) + p.x, this.hS - 1 - p.y);
@@ -1042,17 +1045,6 @@ export class ForestScene {
     const sx = s.trunkX - side * (s.tw / 2 + 8);
     drawSquirrel(f, sky, sx, this.hS - 1, sit.dir, 'sit', Math.sin(sit.t * 8) > 0.2 ? 1 : 0, true, this.sunSide);
     for (const a of s.falling) drawAcorn(f, sky, a.x, a.y);
-    // Leaves shiver when the gust passes through the crown.
-    const leaf = LEAF.tones(sky);
-    const cy = s.canopyY - this.hS * 0.07;
-    for (let k = 0; k < 90; k++) {
-      const b = s.blobs[k % s.blobs.length];
-      const a = hash(k, 1, this.seed) * Math.PI * 2;
-      const x = Math.round(s.trunkX + b.dx + Math.cos(a) * b.rx * 0.95);
-      const y = Math.round(cy + b.dy + Math.sin(a) * b.ry * 0.95);
-      const w = wind(x, i.t, this.W);
-      if (w > 0.45 && hash(k, Math.floor(i.t * 8), 2) < w * 0.6) f.px(x + Math.round(w), y, leaf[3]);
-    }
   }
 
   private updateBear(dt: number) {

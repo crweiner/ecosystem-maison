@@ -86,7 +86,7 @@ export function foliage(
       if (above < 0.12) t = 3;
       else if (above < v - 0.12 && clump > 0.45) t = 3;
       if (v > 0.55 && clump < 0.32) t = 1;
-      if (y > (y0 + y1) / 2 + (y1 - y0) * 0.18 && t > 1 && bayer(x, y) < 8) t--;
+      if (y > (y0 + y1) / 2 + (y1 - y0) * 0.22 && t > 2) t--;
       if (v < 0.28 && bayer(x, y) < 6) continue;
       let c = tones[t];
       if (accent && hash(x, y, seed + 3) < accent.rate) c = accent.tone;
