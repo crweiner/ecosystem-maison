@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Path not found · ecosystem.maison" description="This path through the forest is overgrown." noindex>
+  <main id="main" class="lost">
+    <h1 class="display">This path is overgrown</h1>
+    <p>Nothing grows at this address. The clearing you want is probably back at the start of the trail.</p>
+    <p>
+      <a class="plate" href="/"><span class="plate__face">Back to the forest</span></a>
+    </p>
+  </main>
+</Base>
+
+<style>
+  .lost {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    gap: 1.25rem;
+    padding: 5rem var(--gutter-right) 5rem var(--gutter-left);
+    max-width: 40rem;
+    text-shadow: var(--type-shadow);
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 1rem + 4.5vw, 4rem);
+  }
+
+  p {
+    color: var(--ink-soft);
+    font-size: 1.125rem;
+  }
+</style>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- A pixel sunrise over a ridge, with a pine: the forest's day beginning. -->
+  <rect width="16" height="16" fill="#2a1b3d"/>
+  <rect y="5" width="16" height="3" fill="#6b3560"/>
+  <rect y="8" width="16" height="3" fill="#c4626a"/>
+  <rect x="7" y="6" width="5" height="1" fill="#ffd27a"/>
+  <rect x="6" y="7" width="7" height="4" fill="#fff0c4"/>
+  <rect y="11" width="16" height="5" fill="#1d2428"/>
+  <rect y="10" width="5" height="1" fill="#1d2428"/>
+  <rect x="11" y="10" width="5" height="1" fill="#1d2428"/>
+  <rect x="3" y="4" width="1" height="1" fill="#1d2428"/>
+  <rect x="2" y="6" width="3" height="2" fill="#1d2428"/>
+  <rect x="1" y="8" width="5" height="3" fill="#1d2428"/>
+</svg>

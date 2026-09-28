@@ -1,0 +1,175 @@
+---
+import { referral, type Product } from '../data/products';
+import Icon from './Icon.astro';
+
+interface Props {
+  product: Product;
+  index: number;
+}
+
+const { product, index } = Astro.props;
+// Clearings alternate: words on the left, then the right, down the day.
+const side = index % 2 === 0 ? 'left' : 'right';
+const logoH = 48;
+---
+
+<section
+  class:list={['stop', `stop--${side}`]}
+  id={product.slug}
+  aria-labelledby={`${product.slug}-name`}
+  data-forest="scene"
+  data-scene={JSON.stringify(product.scene)}
+>
+  <div class="stop__copy" data-copy>
+    <h2 class="stop__name" id={`${product.slug}-name`}>
+      <img
+        src={product.logo}
+        alt={product.name}
+        width={Math.round(logoH * product.logoRatio * product.logoScale)}
+        height={Math.round(logoH * product.logoScale)}
+        style={`--logo-scale:${product.logoScale}`}
+        loading="lazy"
+        decoding="async"
+      />
+    </h2>
+    <p class="stop__tagline">{product.tagline}</p>
+    <p class="stop__haiku">
+      {product.haiku.map((line) => <span>{line}</span>)}
+    </p>
+    <p class="visually-hidden">In this clearing: {product.sceneLabel}.</p>
+    <a class="plate plate--ghost plate--small stop__link" href={referral(product.url, 'stop')}>
+      <span class="plate__face">
+        <span>Visit {product.host}</span>
+        <Icon name="out" />
+      </span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .stop {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: min(1.5rem, 1.6vw);
+    align-items: center;
+    padding: clamp(3rem, 12vh, 6rem) var(--gutter-right) clamp(3rem, 12vh, 6rem) var(--gutter-left);
+  }
+
+  .stop__copy {
+    grid-column: 1 / span 5;
+    max-width: 31rem;
+    container-type: inline-size;
+    text-shadow: var(--type-shadow);
+  }
+
+  .stop--right .stop__copy {
+    grid-column: 8 / span 5;
+    justify-self: end;
+    width: 100%;
+  }
+
+  .stop__name {
+    margin: 0 0 clamp(0.75rem, 2.4vh, 1.25rem);
+    line-height: 0;
+  }
+
+  .stop__name img {
+    height: calc(clamp(1.9rem, 1rem + 2vw, 3.1rem) * var(--logo-scale, 1));
+    width: auto;
+    filter: drop-shadow(0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.55));
+  }
+
+  .stop__tagline {
+    margin: 0 0 clamp(1.1rem, 3.6vh, 1.9rem);
+    max-width: 34ch;
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.1875rem);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    text-wrap: balance;
+  }
+
+  /*
+   * The haiku is the scene's voice, set in the forest's pixel face and stepped
+   * down the column like a hand-set poem. Sized from the column's width so each
+   * verse keeps to one line.
+   */
+  .stop__haiku {
+    margin: 0 0 clamp(1.5rem, 4.8vh, 2.5rem);
+    font-family: var(--font-pixel);
+    font-weight: 450;
+    font-size: clamp(1.15rem, 0.9rem + 1.1vw, 2rem);
+    font-size: clamp(1.1rem, 5.3cqi, 2.1rem);
+    line-height: 1.34;
+    color: var(--ink);
+  }
+
+  .stop__haiku span {
+    --step: 0em;
+    display: block;
+    padding-left: calc(var(--step) + 1em);
+    text-indent: -1em;
+  }
+
+  .stop__haiku span:nth-child(2) {
+    --step: 1.1em;
+  }
+
+  .stop__haiku span:nth-child(3) {
+    --step: 0.55em;
+  }
+
+  /* Mid widths in landscape: the words take half the frame. */
+  @media (max-width: 1099px) {
+    .stop__copy {
+      grid-column: 1 / span 6;
+    }
+
+    .stop--right .stop__copy {
+      grid-column: 7 / span 6;
+    }
+  }
+
+  /*
+   * Stacked: phones, and portrait tablets. The clearing fills the top of the
+   * screen; the words sit below it on the dark forest floor.
+   */
+  @media (max-width: 759px), (orientation: portrait) and (max-width: 1099px) {
+    .stop {
+      align-items: end;
+      padding-top: 52vh;
+      padding-top: 52svh;
+      padding-bottom: clamp(3rem, 8vh, 5rem);
+    }
+
+    .stop__copy,
+    .stop--right .stop__copy {
+      grid-column: 1 / -1;
+      justify-self: start;
+      width: min(100%, 34rem);
+      max-width: none;
+    }
+
+    .stop__haiku {
+      font-size: clamp(1.15rem, 5.4cqi, 1.75rem);
+    }
+  }
+
+  /* Short landscape screens (phones on their side): tighten the column. */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .stop {
+      padding-block: 1.5rem;
+    }
+
+    .stop__tagline {
+      margin-bottom: 0.75rem;
+    }
+
+    .stop__haiku {
+      margin-bottom: 1rem;
+      font-size: clamp(1rem, 5cqi, 1.35rem);
+    }
+  }
+</style>

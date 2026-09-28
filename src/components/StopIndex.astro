@@ -1,0 +1,139 @@
+---
+import type { Product } from '../data/products';
+
+interface Props {
+  products: Product[];
+}
+const { products } = Astro.props;
+---
+
+<nav class="index" aria-label="Ecosystem products">
+  <ol>
+    {
+      products.map((p) => (
+        <li>
+          <a href={`#${p.slug}`} data-index-link={p.slug}>
+            <span class="index__label">{p.name}</span>
+            <span class="index__tick" aria-hidden="true" />
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .index {
+    position: fixed;
+    top: 50%;
+    right: max(clamp(0.75rem, 2vw, 2rem), env(safe-area-inset-right));
+    z-index: 5;
+    transform: translateY(-50%);
+    transition: opacity 240ms var(--ease-out);
+  }
+
+  :global(html.at-top) .index,
+  :global(html.at-close) .index {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  ol {
+    display: grid;
+    gap: 0.125rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+    padding-left: 1rem;
+    text-decoration: none;
+    color: var(--ink-soft);
+  }
+
+  .index__label {
+    font-family: var(--font-pixel);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(var(--px));
+    transition:
+      opacity 200ms steps(3, end),
+      transform 200ms steps(3, end);
+    text-shadow: var(--type-shadow);
+  }
+
+  /* A pixel square that grows to a bar at the current clearing. */
+  .index__tick {
+    width: calc(var(--px) * 2);
+    height: calc(var(--px) * 2);
+    background: var(--ink-faint);
+    box-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.6);
+    transition:
+      width 200ms steps(3, end),
+      background-color 200ms steps(2, end);
+  }
+
+  a:hover .index__label,
+  a:focus-visible .index__label,
+  a[aria-current] .index__label {
+    opacity: 1;
+    transform: none;
+  }
+
+  a:hover .index__tick,
+  a:focus-visible .index__tick {
+    background: var(--ink);
+  }
+
+  a[aria-current] {
+    color: var(--ink);
+  }
+
+  a[aria-current] .index__tick {
+    width: calc(var(--px) * 5);
+    background: var(--gold);
+  }
+
+  /* Phones and short landscape screens: ticks only. */
+  @media (max-width: 759px), (max-height: 520px) {
+    .index {
+      right: max(0.25rem, env(safe-area-inset-right));
+    }
+
+    a {
+      min-height: 1.75rem;
+      padding-left: 0.5rem;
+    }
+
+    .index__label {
+      display: none;
+    }
+  }
+
+  @media (pointer: coarse) {
+    a {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+    }
+  }
+
+  @media (pointer: coarse) and (max-height: 520px) {
+    a {
+      min-height: 2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .index__label,
+    .index__tick {
+      transition: none;
+    }
+  }
+</style>

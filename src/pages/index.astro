@@ -1,0 +1,404 @@
+---
+import Base from '../layouts/Base.astro';
+import Stop from '../components/Stop.astro';
+import StopIndex from '../components/StopIndex.astro';
+import SunMark from '../components/SunMark.astro';
+import Icon from '../components/Icon.astro';
+import { closeScene, heroScene, products, referral, trackedTargets } from '../data/products';
+
+const first = products[0];
+const cosmos = referral('https://cosmos.maison/', 'colophon');
+---
+
+<Base
+  title="Welcome to our Ecosystem · ecosystem.maison"
+  description="Automattic's ecosystem of WordPress products as a living pixel forest: WordPress.com, WooCommerce, WordPress VIP, Jetpack, Akismet, Newspack and Gravatar. Or follow the deer to a random one."
+>
+  <canvas slot="world" class="forest" id="forest" aria-hidden="true"></canvas>
+
+  <header class="masthead">
+    <a href="#top" class="masthead__mark">
+      <SunMark />
+      <span class="caption">ecosystem.maison</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title" data-forest="scene" data-scene={JSON.stringify(heroScene)} data-deer>
+      <div class="hero__copy" data-copy>
+        <h1 id="hero-title" class="display">Welcome to our Ecosystem</h1>
+        <p class="hero__lede">Explore Automattic's ecosystem of WordPress products</p>
+        <div class="actions">
+          <a class="plate" href="/wander/" data-wander>
+            <span class="plate__face"><span>Explore a random ecosystem</span><Icon name="run" /></span>
+          </a>
+          <a class="plate plate--ghost" href={`#${first.slug}`}>
+            <span class="plate__face"><span>I want to explore</span><Icon name="down" /></span>
+          </a>
+        </div>
+        <p class="visually-hidden">A deer grazes on a knoll by a still pond at sunrise.</p>
+      </div>
+    </section>
+
+    {
+      products.map((product, i) => (
+        <>
+          <div class="trees" data-forest="trees" aria-hidden="true" />
+          <Stop product={product} index={i} />
+        </>
+      ))
+    }
+
+    <div class="trees" data-forest="trees" aria-hidden="true"></div>
+
+    <section class="close" aria-labelledby="close-title" data-forest="scene" data-scene={JSON.stringify(closeScene)} data-deer>
+      <div class="close__copy" data-copy>
+        <h2 id="close-title" class="display close__title">Pick a path, any&nbsp;path</h2>
+        <div class="actions">
+          <a class="plate" href="/wander/" data-wander>
+            <span class="plate__face"><span>Explore a random ecosystem</span><Icon name="run" /></span>
+          </a>
+          <a class="plate plate--ghost" href="#top">
+            <span class="plate__face"><span>Back to the top</span><Icon name="up" /></span>
+          </a>
+        </div>
+        <p class="visually-hidden">The same deer grazes by the pond at sunset.</p>
+      </div>
+    </section>
+  </main>
+
+  <StopIndex products={products} />
+
+  <footer class="colophon">
+    <p class="caption">
+      ecosystem.maison · WordPress products from Automattic · Its sibling: <a href={cosmos}>cosmos.maison</a>
+    </p>
+  </footer>
+
+  <p slot="overlay" class="wander-status" role="status" aria-live="polite"></p>
+
+  <script is:inline define:vars={{ targets: trackedTargets('wander') }}>
+    window.__ecosystemTargets = targets;
+  </script>
+</Base>
+
+<script>
+  import { startForest, type ForestController } from '../scripts/forest/engine';
+
+  const root = document.documentElement;
+  const canvas = document.getElementById('forest') as HTMLCanvasElement;
+  const sections = [...document.querySelectorAll<HTMLElement>('[data-forest]')];
+  const sun = document.querySelector<SVGRectElement>('[data-sun]');
+  const radius = Number(sun?.closest('svg')?.dataset.radius ?? 7);
+
+  /** Walk the masthead's pixel sun along its arc for the forest's hour. */
+  function placeSun(hour: number) {
+    if (!sun) return;
+    const t = Math.max(0, Math.min(1, (hour - 6) / (19.4 - 6)));
+    const a = Math.PI - t * Math.PI;
+    sun.setAttribute('x', String(Math.round(radius + Math.cos(a) * radius)));
+    sun.setAttribute('y', String(Math.round(radius - Math.sin(a) * radius)));
+  }
+
+  /*
+   * The forest is an enhancement. If the canvas cannot start, the page keeps
+   * its still stepped sky and every link and button works as a plain link.
+   */
+  let forest: ForestController | null = null;
+  try {
+    forest = startForest(canvas, sections, { onHour: placeSun });
+    root.classList.add('has-forest');
+    // Fonts change where the words sit; re-stage the clearings once they land.
+    document.fonts?.ready.then(() => forest?.refresh());
+  } catch (err) {
+    console.warn('[ecosystem] forest unavailable:', err);
+    canvas.remove();
+  }
+
+  // --- Explore a random ecosystem: follow the deer ----------------------------
+  type Target = { name: string; url: string };
+  const listed = (window as unknown as { __ecosystemTargets?: Target[] }).__ecosystemTargets;
+  const targets: Target[] = Array.isArray(listed) ? listed : [];
+  const status = document.querySelector<HTMLElement>('.wander-status')!;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function pickTarget(): Target {
+    let lastName: string | null = null;
+    try {
+      lastName = sessionStorage.getItem('ecosystem:last-wander');
+    } catch {}
+    // Never land on the same product twice in a row.
+    const pool = targets.length > 1 ? targets.filter((t) => t.name !== lastName) : targets;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    try {
+      sessionStorage.setItem('ecosystem:last-wander', pick.name);
+    } catch {}
+    return pick;
+  }
+
+  let wandering = false;
+  for (const link of targets.length ? document.querySelectorAll<HTMLAnchorElement>('[data-wander]') : []) {
+    link.addEventListener('click', async (event) => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      event.preventDefault();
+      if (wandering) return;
+      wandering = true;
+      const target = pickTarget();
+      const section = link.closest<HTMLElement>('[data-deer]');
+      const animated = !!forest && !!section && !reduceMotion.matches;
+      status.textContent = `Following the deer to ${target.name}`;
+      root.classList.add('is-wandering');
+      if (animated) {
+        // Leave on time even if the browser stops sending frames mid-run.
+        await Promise.race([forest!.run(section!), new Promise((done) => setTimeout(done, 1300))]);
+      } else {
+        await new Promise((done) => setTimeout(done, 600));
+      }
+      window.location.assign(target.url);
+    });
+  }
+
+  // Coming back with the back button restores the page mid-run.
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    wandering = false;
+    root.classList.remove('is-wandering');
+    status.textContent = '';
+    forest?.reset();
+  });
+
+  // --- Stop index: mark the clearing in view -----------------------------------
+  const links = new Map(
+    [...document.querySelectorAll<HTMLAnchorElement>('[data-index-link]')].map((a) => [a.dataset.indexLink!, a]),
+  );
+  const hero = document.getElementById('top')!;
+  const closing = document.querySelector<HTMLElement>('.close')!;
+  root.classList.add('at-top');
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const el = entry.target as HTMLElement;
+        if (el === hero) {
+          root.classList.toggle('at-top', entry.isIntersecting);
+          continue;
+        }
+        if (el === closing) {
+          root.classList.toggle('at-close', entry.isIntersecting);
+          continue;
+        }
+        const link = links.get(el.id);
+        if (!link) continue;
+        if (entry.isIntersecting) {
+          links.forEach((l) => l.removeAttribute('aria-current'));
+          link.setAttribute('aria-current', 'location');
+        } else if (link.getAttribute('aria-current')) {
+          link.removeAttribute('aria-current');
+        }
+      }
+    },
+    { rootMargin: '-45% 0px -45% 0px' },
+  );
+  io.observe(hero);
+  io.observe(closing);
+  document.querySelectorAll<HTMLElement>('.stop').forEach((s) => io.observe(s));
+</script>
+
+<style>
+  .masthead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    padding: max(clamp(1.25rem, 2.6vw, 2.25rem), env(safe-area-inset-top)) var(--gutter-right) 0 var(--gutter-left);
+  }
+
+  .masthead__mark {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    padding-block: 0.5rem;
+    margin-block: -0.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    text-shadow: var(--type-shadow);
+  }
+
+  .masthead__mark .caption {
+    line-height: 1;
+  }
+
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    padding: 7rem var(--gutter-right) clamp(3rem, 10vh, 7rem) var(--gutter-left);
+  }
+
+  .hero__copy {
+    max-width: min(46rem, 52vw);
+    text-shadow: var(--type-shadow);
+  }
+
+  h1 {
+    margin: 0 0 clamp(0.9rem, 2.4vh, 1.4rem);
+    font-size: clamp(2.6rem, min(1rem + 5.4vw, 13vh), 6rem);
+    max-width: 10ch;
+  }
+
+  .hero__lede {
+    margin: 0 0 clamp(1.5rem, 4.5vh, 2.5rem);
+    max-width: 30ch;
+    text-wrap: balance;
+    font-size: clamp(1.15rem, 0.95rem + 0.75vw, 1.5rem);
+    line-height: 1.4;
+    color: var(--ink-soft);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--px) * 3 + 0.25rem) 1rem;
+  }
+
+  .trees {
+    height: 125vh;
+    height: 125svh;
+  }
+
+  .close {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    justify-items: end;
+    padding: 6rem var(--gutter-right) 6rem var(--gutter-left);
+  }
+
+  .close__copy {
+    max-width: min(34rem, 44vw);
+    text-shadow: var(--type-shadow);
+  }
+
+  .close__title {
+    margin: 0 0 clamp(1.5rem, 4.5vh, 2.5rem);
+    font-size: clamp(2.2rem, min(0.9rem + 4vw, 11vh), 4.75rem);
+    max-width: 9ch;
+  }
+
+  /* Stacked: phones and portrait tablets put the words on the forest floor. */
+  @media (max-width: 759px), (orientation: portrait) and (max-width: 1099px) {
+    .hero {
+      padding-top: 56vh;
+      padding-top: 56svh;
+      padding-bottom: clamp(2.5rem, 7vh, 4.5rem);
+    }
+
+    .hero__copy,
+    .close__copy {
+      max-width: 34rem;
+    }
+
+    h1 {
+      font-size: clamp(2.3rem, 11vw, 4.25rem);
+    }
+
+    .close {
+      align-items: end;
+      justify-items: start;
+      padding-top: 56vh;
+      padding-top: 56svh;
+      padding-bottom: clamp(3rem, 9vh, 5rem);
+    }
+
+    .close__title {
+      font-size: clamp(2.1rem, 10vw, 3.75rem);
+    }
+  }
+
+  /* Phones on their side: the hero has to fit in a very short frame. */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .hero {
+      padding-top: 4.5rem;
+      padding-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(1.9rem, 13vh, 3rem);
+      max-width: 14ch;
+    }
+
+    .hero__lede {
+      margin-bottom: 1rem;
+    }
+
+    .close__title {
+      font-size: clamp(1.8rem, 12vh, 2.75rem);
+    }
+  }
+
+  .colophon {
+    position: relative;
+    z-index: 5;
+    padding: 0 var(--gutter-right) max(clamp(1.5rem, 3vw, 2.5rem), env(safe-area-inset-bottom)) var(--gutter-left);
+    margin-top: -4.5rem;
+  }
+
+  .colophon p {
+    color: var(--ink-soft);
+    text-shadow: var(--type-shadow);
+  }
+
+  .colophon a {
+    color: var(--gold);
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: max(2px, calc(var(--px) / 2));
+  }
+
+  .colophon a:hover {
+    color: var(--gold-bright);
+  }
+
+  /* ---- Following the deer ---------------------------------------------- */
+
+  .wander-status {
+    position: fixed;
+    left: 50%;
+    top: max(clamp(1.25rem, 6vh, 3.5rem), env(safe-area-inset-top));
+    z-index: 30;
+    margin: 0;
+    padding: 0.55em 1em 0.5em;
+    transform: translateX(-50%);
+    font-family: var(--font-pixel);
+    font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+    font-weight: 600;
+    color: var(--night);
+    background: var(--gold);
+    max-width: calc(100vw - 2 * var(--gutter));
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  :global(html.is-wandering) .wander-status {
+    opacity: 1;
+  }
+
+  :global(html.is-wandering) .page,
+  :global(html.is-wandering) .index {
+    opacity: 0;
+    transition: opacity 360ms var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(html.is-wandering) .page,
+    :global(html.is-wandering) .index {
+      transition: none;
+    }
+  }
+</style>

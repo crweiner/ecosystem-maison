@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro';
+import { trackedTargets } from '../data/products';
+
+const list = trackedTargets('wander-list');
+const targets = trackedTargets('wander-link');
+---
+
+<Base
+  title="Follow the deer · ecosystem.maison"
+  description="A link that takes you to one of Automattic's WordPress products at random."
+  noindex
+>
+  <main id="main" class="wander-page">
+    <h1 class="display">Pick a path through the ecosystem</h1>
+    <ul>
+      {list.map((t) => <li><a href={t.url}>{t.name}</a></li>)}
+    </ul>
+    <p><a class="wander-page__home" href="/">Back to ecosystem.maison</a></p>
+  </main>
+  <script is:inline define:vars={{ targets }}>
+    // Same rule as the home page: never land on the product chosen last.
+    var last = null;
+    try { last = sessionStorage.getItem('ecosystem:last-wander'); } catch (e) {}
+    var pool = targets.filter(function (t) { return t.name !== last; });
+    if (!pool.length) pool = targets;
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    try { sessionStorage.setItem('ecosystem:last-wander', pick.name); } catch (e) {}
+    window.location.replace(pick.url);
+  </script>
+</Base>
+
+<style>
+  .wander-page {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 5rem var(--gutter-right) 5rem var(--gutter-left);
+    max-width: 42rem;
+    text-shadow: var(--type-shadow);
+  }
+
+  h1 {
+    font-size: clamp(2rem, 1rem + 4vw, 3.5rem);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    display: block;
+    padding: 0.7rem 0;
+    border-bottom: max(2px, calc(var(--px) / 2)) solid var(--ink-faint);
+    text-decoration: none;
+    color: var(--gold);
+    font-family: var(--font-pixel);
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+
+  li a:hover {
+    color: var(--gold-bright);
+  }
+
+  .wander-page__home {
+    color: var(--ink-soft);
+  }
+</style>
