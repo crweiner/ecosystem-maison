@@ -188,6 +188,9 @@ html:not(.has-forest) [data-copy] {
 .display {
   font-family: var(--font-pixel);
   font-weight: 600;
+  /* At very large text sizes on the narrowest screens a title hyphenates rather than spill sideways. */
+  hyphens: auto;
+  overflow-wrap: anywhere;
   letter-spacing: 0.005em;
   line-height: 0.98;
   text-wrap: balance;
@@ -234,6 +237,7 @@ html:not(.has-forest) [data-copy] {
   display: inline-flex;
   align-items: center;
   gap: 0.7em;
+  max-width: 100%;
   padding: 0.72em 1.15em 0.66em;
   background: var(--plate-bg);
   clip-path: polygon(
@@ -250,6 +254,16 @@ html:not(.has-forest) [data-copy] {
     0 var(--c),
     var(--c) var(--c)
   );
+}
+
+/* At large text sizes a label wraps instead of pushing the page sideways; a domain may break anywhere. */
+.plate {
+  max-width: 100%;
+}
+
+.plate__face > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .plate svg {

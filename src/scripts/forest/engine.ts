@@ -60,7 +60,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   let vw = 0;
   let vh = 0;
   let image: ImageData;
-  let frame: Frame;
+  let frame: Frame | undefined;
   let spare: Frame;
   const sections: Section[] = sectionEls.map((el) => ({
     el,
@@ -141,6 +141,9 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   }
 
   function build() {
+    // A hidden tab, a collapsed frame or a rotation mid-flight can report no size;
+    // wait for a real one rather than allocating an empty canvas.
+    if (window.innerWidth < 1 || window.innerHeight < 1) return;
     vw = window.innerWidth;
     vh = window.innerHeight;
     U = pixelUnit(vw, vh);
@@ -204,13 +207,15 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
    * a trailhead kiosk at every clearing. Each is lit by its own clearing's
    * hour and drawn from the words' box, so it scrolls with them.
    */
-  function boards() {
+  function boards(frame: Frame) {
     // While the deer runs, the words fade out; their boards step aside with them.
     if (root.classList.contains('is-wandering')) return;
     const reach = boardReach(W, H);
     for (const s of sections) {
       if (!s.copy || !s.spec || !s.scene) continue;
       const c = s.copy.getBoundingClientRect();
+      // Words with no box (hidden, or not laid out yet) get no board.
+      if (c.width < 1 || c.height < 1) continue;
       const spec = {
         x0: c.left / U,
         x1: c.right / U,
@@ -229,6 +234,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   }
 
   function render(force = false) {
+    // Nothing to draw into until the viewport has had a real size.
+    if (!frame) return;
     const where = locate();
     const hour = Math.round(where.hour * 20) / 20;
     if (hour !== lastHour || force) {
@@ -271,7 +278,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       paintWall(frame, sky, where.p, (a.spec?.seed ?? 1) + (b.spec?.seed ?? 2), a.scene!.sunX);
       if (span.mid < W / 2) sky = skyB;
     }
-    boards();
+    boards(frame);
     ctx!.putImageData(image, 0, 0);
   }
 

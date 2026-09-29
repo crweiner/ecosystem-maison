@@ -53,7 +53,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
     <section class="close" aria-labelledby="close-title" data-forest="scene" data-scene={JSON.stringify(closeScene)} data-deer>
       <div class="close__copy" data-copy>
-        <h2 id="close-title" class="display close__title">Pick a path, any&nbsp;path</h2>
+        <h2 id="close-title" class="display close__title">Pick a path, any path</h2>
         <div class="actions">
           <a class="plate" href="/wander/" data-wander>
             <span class="plate__face"><span>Explore a random biome<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
@@ -230,7 +230,9 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
   .masthead__mark {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: flex-end;
+    max-width: 100%;
     gap: calc(var(--px) * 3 + 0.25rem);
     padding-block: 0.5rem;
     margin-block: -0.5rem;
@@ -241,6 +243,8 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
   .masthead__mark .caption {
     line-height: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .hero {
@@ -405,6 +409,8 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
     font-weight: 500;
     letter-spacing: 0.01em;
     display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
     padding: 0.45em 0.8em;
     color: var(--ink);
     background: rgb(13 13 22 / 0.72);

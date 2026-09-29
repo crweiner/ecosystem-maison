@@ -33,6 +33,10 @@ export class Frame {
     const y0 = Math.max(0, Math.round(y));
     const x1 = Math.min(this.w, Math.round(x + w));
     const y1 = Math.min(this.h, Math.round(y + h));
+    // Nothing to draw once clipped. Without this, an empty span on the first row
+    // hands fill() a negative end, which it reads as "from the end of the buffer",
+    // and the whole frame is repainted in one colour.
+    if (!(x1 > x0 && y1 > y0)) return;
     for (let j = y0; j < y1; j++) this.buf.fill(c, j * this.w + x0, j * this.w + x1);
   }
 

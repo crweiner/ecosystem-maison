@@ -114,6 +114,8 @@ const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[
   .stop__haiku span {
     --step: 0em;
     display: block;
+    /* Only at extreme text sizes on the narrowest phones does a single word outgrow the column. */
+    overflow-wrap: anywhere;
     padding-left: calc(var(--step) + 1em);
     text-indent: -1em;
   }

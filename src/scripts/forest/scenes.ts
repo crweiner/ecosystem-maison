@@ -832,6 +832,8 @@ export class ForestScene {
     const xb = Math.min(this.W, x0 + w);
     const ya = Math.max(0, y0);
     const yb = Math.min(this.H, y0 + h);
+    // Entirely off the frame (the stag bounding out of sight): nothing to draw.
+    if (!(xb > xa && yb > ya)) return;
     for (let y = ya; y < yb; y++) g.buf.fill(0, y * this.W + xa, y * this.W + xb);
     draw(g);
     const rimOn = sky.backlit > 0.3;
