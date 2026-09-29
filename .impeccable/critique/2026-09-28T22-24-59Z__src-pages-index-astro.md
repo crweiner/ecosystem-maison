@@ -10,6 +10,7 @@ target_fingerprint: "sha256:e7059d318d6ef27f535176ee4a65af187fd94cfc8aceefff4923
 target_path: /Users/chandlerweinera8c/Documents/GitHub/ecosystem-maison/src/pages/index.astro
 timestamp: 2026-09-28T22-24-59Z
 slug: src-pages-index-astro
+closed: true
 ---
 Method: dual-agent (A: design review · B: detector + browser evidence). Assessed build: dafa531 (frozen). Fixes made in the same run are marked FIXED.
 

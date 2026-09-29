@@ -231,7 +231,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
   .masthead__mark {
     display: inline-flex;
     align-items: flex-end;
-    gap: 0.75rem;
+    gap: calc(var(--px) * 3 + 0.25rem);
     padding-block: 0.5rem;
     margin-block: -0.5rem;
     text-decoration: none;
@@ -397,9 +397,18 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
     margin-top: -4.5rem;
   }
 
+  /* Set in the reading face on a small dark plate: it sits over reeds and water, where pixel type breaks up. */
   .colophon p {
-    color: var(--ink-soft);
-    text-shadow: var(--type-shadow);
+    font-family: var(--font-text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    display: inline-block;
+    padding: 0.45em 0.8em;
+    color: var(--ink);
+    background: rgb(13 13 22 / 0.72);
+    --c: var(--px);
+    clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
   }
 
   .colophon a {

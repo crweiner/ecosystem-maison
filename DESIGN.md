@@ -159,7 +159,7 @@ The HTML palette is tiny and warm (cream ink, sun-gold, near-black night); every
 
 ## Layout
 
-A full-bleed canvas fixed behind a scrolling page. Each clearing (hero, seven stops, close) is at least one small-viewport height (`100svh`); between clearings sits an empty 125svh band during which a wall of trunks crosses the frame and the next clearing swaps in behind it. The sky's hour is interpolated across that band, so scroll position is the clock.
+A full-bleed canvas fixed behind a scrolling page. Each clearing (hero, seven stops, close) is at least one small-viewport height (`100svh`); between clearings sits an empty 50svh band; the wall of trunks crosses the frame over that band plus half a screen either side (about 1.5 screen heights of scroll), and the next clearing swaps in behind its densest trunks. Every trunk rank enters exactly at the right edge and leaves exactly at the left, so nothing appears or vanishes inside the frame. Each clearing is painted once at its own hour and never re-tinted while scrolling; time passes behind the wall, and the masthead's sun mark tracks the interpolated hour continuously.
 
 Stops use a 12-column grid (gap min(1.5rem, 1.6vw)) with side gutters of clamp(1.25rem, 5vw, 5.5rem), safe-area aware. Copy alternates sides down the day: columns 1 to 5 on even stops, 7 to 11 on odd ones (max 31rem); at 1099px and below it widens to six columns. The engine reads where the copy sits and stages the scene's creatures in the remaining space. The hero copy sits bottom-left (max min(46rem, 52vw)); the close copy sits right.
 
@@ -176,7 +176,7 @@ The HTML layer is flat. Depth is the world's: three hazed ridges (far mountains,
 - **Plate floor** (`filter: drop-shadow(0 var(--px) 0 var(--gold-deep))`): the primary plate stands on one world pixel of burnt umber; the ghost plate stands on night at 60%.
 - **Mark drop** (`drop-shadow(0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.55 to 0.6))`): product logos, the sun mark, index ticks.
 
-Open item: on daylight clearings, words over bright sky currently rely on a dithered shade pool that still reads as a dark cloud. It is not a system rule; the proposed world-sourced replacement is a foreground-tree silhouette behind the copy.
+**The Near Bough Rule.** Words beside a clearing sit in the shadow of a near conifer bough that reaches in from beyond the frame edge on the words' side: drooping tiers in near-ink that reach just past the copy, with light only at the needle tips, tapering away above and below the copy and scrolling with it. It never darkens open sky. Stacked (phone and portrait) layouts put the words on the dark forest floor instead. A small fixed readout ("3 / 7 · WordPress VIP") opposite the masthead names the current clearing on every screen, including touch.
 
 ### Named Rules
 **The Hard Light Rule.** Light falls in stepped, flat bands and shadows are hard. Where the world needs a gradient (sun glow, sky, mist, shade) it steps through dithered bands; no smooth gradient appears on the canvas or in the fallback sky.

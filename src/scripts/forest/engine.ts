@@ -8,7 +8,7 @@
  * page names a clearing and its hour, and between clearings a wall of trunks
  * passes across the frame while the next clearing swaps in behind it.
  */
-import { bayer, noise2, skyAt, type RGB, type Sky } from './color';
+import { bayer, hash, mix, noise2, pack, skyAt, type Sky } from './color';
 import { Frame } from './raster';
 import { ForestScene, paintWall, wallSpan, type Input, type Layout } from './scenes';
 import type { Scene } from '../../data/products';
@@ -192,15 +192,76 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   }
 
   /** Darken the world behind the words: a dithered shade that follows the copy. */
-  function shade(ink: RGB) {
+  /**
+   * Beside the words: a bough of a near conifer, reaching in from beyond the
+   * frame's edge, so the words sit in real shadow instead of a darkened sky.
+   * It belongs to the words' layer and scrolls with them. Its tiers droop to
+   * needle tips, catch a thread of light on top, and taper away above and
+   * below the copy.
+   */
+  function bough(sky: Sky, side: 'left' | 'right', x0: number, x1: number, y0: number, y1: number, key: number) {
+    const reachCopy = side === 'left' ? x1 : W - x0;
+    const T = Math.max(7, Math.round(H * 0.06));
+    const mid = (y0 + y1) / 2;
+    const half = (y1 - y0) / 2;
+    const tail = H * 0.16;
+    const top = Math.floor(y0 - T - tail);
+    const bottom = Math.ceil(y1 + T + tail);
+    const base = pack(mix(sky.ink, sky.shade, 0.28));
+    const deep = pack(mix(sky.ink, sky.shade, 0.08));
+    const needle = pack(mix(mix(sky.ink, sky.shade, 0.28), sky.grass, 0.22));
+    const lit = pack(mix(mix(sky.ink, sky.shade, 0.28), sky.glow, 0.3));
+    // The tiers are anchored to the copy's top, so the whole bough moves as one piece.
+    const k0 = Math.floor((top - y0) / T) - 1;
+    const k1 = Math.ceil((bottom - y0) / T) + 1;
+    for (let k = k0; k <= k1; k++) {
+      const tierTop = Math.round(y0) + k * T;
+      const dist = Math.abs(tierTop + T / 2 - mid);
+      const cover = dist <= half + T ? 1 : Math.max(0, 1 - (dist - half - T) / tail);
+      if (cover <= 0) continue;
+      // Just past the words: the shortest row of a covering tier still clears the copy.
+      const jitter = hash(k, 3, key) * 5;
+      const R = (reachCopy + 5 + jitter) / 0.92;
+      const reach = cover >= 1 ? R : R * (0.2 + 0.8 * cover ** 0.8);
+      for (let j = 0; j < T; j++) {
+        const y = tierTop + j;
+        if (y < 0 || y >= H) continue;
+        // Each tier droops: short at its top, longest at its needle tips below.
+        let r = reach * (0.92 + 0.08 * (j / (T - 1)));
+        r += (hash(k, j, key + 1) - 0.5) * 3;
+        const tuft = hash(k, j, key + 2) < 0.3 ? 2 : 0;
+        const row = y * W;
+        const n = Math.min(W, Math.round(r + tuft));
+        for (let e = 0; e < n; e++) {
+          const x = side === 'left' ? e : W - 1 - e;
+          let c = base;
+          // Light only where it would fall: the needle tips, and the tier's top near them.
+          if (e >= r - 1) c = e < r ? (hash(k, j, key + 4) < 0.5 ? lit : needle) : needle;
+          else if (j === 0 && e > r - 7 && hash(e, k, key) < 0.5) c = needle;
+          else if (j >= T - 2 && e > r - 5) c = deep;
+          frame.buf[row + x] = c;
+        }
+      }
+    }
+  }
+
+  function shade(sky: Sky) {
+    const ink = sky.ink;
     const levels = [0, 0.12, 0.24, 0.36, 0.47, 0.56, 0.62];
     for (const s of sections) {
       if (!s.copy) continue;
       const c = s.copy.getBoundingClientRect();
-      if (c.bottom < -40 || c.top > vh + 40) continue;
       const x0 = c.left / U;
       const x1 = c.right / U;
       const y0 = c.top / U;
+      const sideOf = s.scene?.L.textSide ?? 'left';
+      if (sideOf !== 'bottom') {
+        const reachTail = H * 0.16 + Math.max(7, Math.round(H * 0.06));
+        if (c.bottom / U + reachTail < 0 || y0 - reachTail > H) continue;
+        bough(sky, sideOf, x0, x1, y0, c.bottom / U, (s.spec?.seed ?? 1) * 97);
+        continue;
+      }
+      if (c.bottom < -40 || c.top > vh + 40) continue;
       // Shade pools around the words: a long dithered falloff sideways and
       // above and below the copy, so the sky beyond it is left whole.
       // Stacked layouts: the forest floor darkens from just above the copy.
@@ -289,7 +350,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       paintWall(frame, sky, where.p, (a.spec?.seed ?? 1) + (b.spec?.seed ?? 2), a.scene!.sunX);
       if (span.mid < W / 2) sky = skyB;
     }
-    shade(sky.ink);
+    shade(sky);
     ctx!.putImageData(image, 0, 0);
   }
 
