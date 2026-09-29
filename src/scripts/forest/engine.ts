@@ -8,9 +8,10 @@
  * page names a clearing and its hour, and between clearings a wall of trunks
  * passes across the frame while the next clearing swaps in behind it.
  */
-import { bayer, noise2, skyAt, type RGB, type Sky } from './color';
+import { skyAt, type Sky } from './color';
 import { Frame } from './raster';
 import { ForestScene, paintWall, wallSpan, type Input, type Layout } from './scenes';
+import { boardReach, entranceSign, kiosk } from './signs';
 import type { Scene } from '../../data/products';
 
 interface Section {
@@ -191,58 +192,32 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     s.bgHour = q;
   }
 
-  /** Darken the world behind the words: a dithered shade that follows the copy. */
-  function shade(ink: RGB) {
-    const levels = [0, 0.12, 0.24, 0.36, 0.47, 0.56, 0.62];
+  /**
+   * The words' signage: a carved entrance sign in the dawn and dusk meadows,
+   * a trailhead kiosk at every clearing. Each is lit by its own clearing's
+   * hour and drawn from the words' box, so it scrolls with them.
+   */
+  function boards() {
+    // While the deer runs, the words fade out; their boards step aside with them.
+    if (root.classList.contains('is-wandering')) return;
+    const reach = boardReach(W, H);
     for (const s of sections) {
-      if (!s.copy) continue;
+      if (!s.copy || !s.spec || !s.scene) continue;
       const c = s.copy.getBoundingClientRect();
-      if (c.bottom < -40 || c.top > vh + 40) continue;
-      const x0 = c.left / U;
-      const x1 = c.right / U;
-      const y0 = c.top / U;
-      // Shade pools around the words: a long dithered falloff sideways and
-      // above and below the copy, so the sky beyond it is left whole.
-      // Stacked layouts: the forest floor darkens from just above the copy.
-      const y1 = c.bottom / U;
-      const ax = Math.round(x0);
-      const ay = Math.round(y0);
-      const fadeX = Math.max(18, W * 0.2);
-      const fadeY = Math.max(16, H * 0.22);
-      const side = s.scene?.L.textSide ?? 'left';
-      const bx0 = side === 'right' ? Math.floor(x0 - fadeX) : 0;
-      const bx1 = side === 'left' ? Math.ceil(x1 + fadeX) : W;
-      const by0 = Math.max(0, Math.floor(y0 - fadeY - 4));
-      const by1 = side === 'bottom' ? H : Math.min(H, Math.ceil(y1 + fadeY + 4));
-      for (let y = by0; y < by1; y++) {
-        const row = y * W;
-        for (let x = Math.max(0, bx0); x < Math.min(W, bx1); x++) {
-          // A rounded pool of shade, its edge broken by noise like the shadow of a canopy.
-          let dx = 0;
-          if (side === 'left' && x > x1 - 6) dx = (x - x1 + 6) / fadeX;
-          else if (side === 'right' && x < x0 + 6) dx = (x0 + 6 - x) / fadeX;
-          let dy = 0;
-          if (y < y0 - 2) dy = (y0 - 2 - y) / fadeY;
-          else if (side !== 'bottom' && y > y1 + 2) dy = (y - y1 - 2) / fadeY;
-          // Noise and dither are anchored to the copy, so the pool moves as one piece.
-          const cx = x - ax;
-          const cy = y - ay;
-          const ragged = (noise2(cx * 0.09, cy * 0.09, 17) - 0.5) * 0.45;
-          const d = Math.sqrt(dx * dx + dy * dy) + ragged;
-          const hx = Math.max(0, 1 - d) ** 1.3;
-          const hy = 1;
-          const k = hx * hy * (levels.length - 1);
-          const lv = Math.min(levels.length - 1, Math.floor(k + bayer(cx, cy) / 16));
-          if (lv <= 0) continue;
-          const p = frame.buf[row + x];
-          const t = levels[lv];
-          const r = p & 255;
-          const g = (p >> 8) & 255;
-          const b = (p >> 16) & 255;
-          frame.buf[row + x] =
-            (0xff000000 | (Math.round(b + (ink[2] - b) * t) << 16) | (Math.round(g + (ink[1] - g) * t) << 8) | Math.round(r + (ink[0] - r) * t)) >>> 0;
-        }
-      }
+      const spec = {
+        x0: c.left / U,
+        x1: c.right / U,
+        y0: c.top / U,
+        y1: c.bottom / U,
+        side: s.scene.L.textSide,
+        kind: s.spec.kind,
+        sunSide: s.scene.sunSide,
+        seed: s.spec.seed,
+      };
+      if (spec.y1 + reach < 0 || spec.y0 - reach > H + H) continue;
+      const sky = skyFor(s.spec.hour);
+      if (s.spec.kind === 'meadow') entranceSign(frame, sky, spec);
+      else kiosk(frame, sky, spec);
     }
   }
 
@@ -289,7 +264,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       paintWall(frame, sky, where.p, (a.spec?.seed ?? 1) + (b.spec?.seed ?? 2), a.scene!.sunX);
       if (span.mid < W / 2) sky = skyB;
     }
-    shade(sky.ink);
+    boards();
     ctx!.putImageData(image, 0, 0);
   }
 

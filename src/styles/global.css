@@ -168,6 +168,13 @@ html:not(.has-forest) .sky-fallback {
   display: block;
 }
 
+/* Without the forest, the words keep a plain painted board of their own. */
+html:not(.has-forest) [data-copy] {
+  padding: 1.25rem 1.5rem 1.5rem;
+  background: #2c1d15;
+  box-shadow: inset 0 0 0 var(--px) #7a5234;
+}
+
 /* ---- Type --------------------------------------------------------------- */
 
 .display {
