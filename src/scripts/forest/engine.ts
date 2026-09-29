@@ -80,6 +80,24 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     el instanceof Element && !!el.closest('a, button, input, select, textarea, label, [data-copy], nav, .masthead, .whereabouts, .colophon');
   let lastPointer = -1e9;
   let raf = 0;
+  /**
+   * Idle cadence: after a few seconds without a scroll, a pointer or a tap the
+   * forest keeps breathing at 8 frames a second and sleeps between frames on a
+   * timer, instead of waking with every display refresh. Any activity snaps it
+   * straight back to 24.
+   */
+  const IDLE_AFTER = 6000;
+  let lastActivity = performance.now();
+  let idleTimer = 0;
+  const isIdle = () => performance.now() - Math.max(lastActivity, lastPointer) > IDLE_AFTER;
+  function wake() {
+    lastActivity = performance.now();
+    if (idleTimer) {
+      window.clearTimeout(idleTimer);
+      idleTimer = 0;
+      schedule();
+    }
+  }
   let last = performance.now();
   let acc = 0;
   let running = true;
@@ -300,8 +318,11 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     const dt = Math.min(0.1, (now - last) / 1000);
     last = now;
     acc += dt;
-    // The world moves at a steady 24 frames a second, like hand-drawn animation.
-    if (acc >= 1 / 24) {
+    // The world moves at a steady 24 frames a second, like hand-drawn animation;
+    // left alone, it slows to 8 to spare the battery.
+    // (Idle ticks arrive on a ~8/s timer; every one of them paints.)
+    const rate = isIdle() ? 8 : 24;
+    if (acc >= (1 / rate) * 0.8) {
       input.dt = acc;
       input.t += acc;
       acc = 0;
@@ -322,10 +343,19 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
 
   function schedule() {
     const allowed = !reduce.matches || performance.now() < burstUntil;
-    if (!raf && running && allowed && !document.hidden) raf = requestAnimationFrame(tick);
+    if (raf || idleTimer || !running || !allowed || document.hidden) return;
+    if (isIdle()) {
+      idleTimer = window.setTimeout(() => {
+        idleTimer = 0;
+        raf = requestAnimationFrame(tick);
+      }, 110);
+    } else {
+      raf = requestAnimationFrame(tick);
+    }
   }
 
   const onScroll = () => {
+    wake();
     if (reduce.matches || !raf) render();
     else dirty = true;
   };
@@ -351,6 +381,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     input.px = e.clientX / U;
     input.py = e.clientY / U;
     lastPointer = performance.now();
+    wake();
     // Say so with the cursor when the forest under a mouse would answer a click.
     if (e.pointerType === 'mouse') {
       const hot = active.length === 1 && !isUI(e.target) && active[0].hot(input.px, input.py);
@@ -388,6 +419,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       burstUntil = performance.now() + 1400;
       last = performance.now();
     }
+    wake();
     schedule();
   };
   window.addEventListener('pointerdown', onDown, { passive: true });
@@ -404,6 +436,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     run(sectionEl) {
       const sec = sections.find((s) => s.el === sectionEl);
       if (!sec?.scene || reduce.matches || !active.includes(sec.scene)) return Promise.resolve();
+      wake();
       return sec.scene.run();
     },
     refresh() {
@@ -416,6 +449,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     destroy() {
       running = false;
       cancelAnimationFrame(raf);
+      window.clearTimeout(idleTimer);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onPointer);
