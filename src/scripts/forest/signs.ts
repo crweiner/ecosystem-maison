@@ -44,7 +44,6 @@ function metrics(W: number, H: number) {
     wing: 21,
     band: 15,
     roof: Math.max(5, Math.round(H * 0.032)),
-    post: Math.max(2, Math.round(W * 0.009)),
   };
 }
 
@@ -86,20 +85,6 @@ function frameAround(f: Frame, sky: Sky, x0: number, y0: number, x1: number, y1:
     const edge = sunSide > 0 ? x1 - 1 + w : x0 - w;
     f.vline(edge, y0 - w, y1 + w - 1, t[4]);
     f.hline(x0 - w, x1 - 1 + w, y0 - w, t[4]);
-  }
-}
-
-/** Two posts from under the board down past the bottom of the frame. */
-function posts(f: Frame, sky: Sky, xa: number, xb: number, top: number, pw: number, sunSide: number) {
-  const t = WOOD.tones(sky);
-  for (const x of [xa, xb - pw]) {
-    for (let y = top; y < f.h; y++) {
-      for (let i = 0; i < pw; i++) {
-        const u = pw === 1 ? 0.5 : i / (pw - 1);
-        const light = sunSide > 0 ? u : 1 - u;
-        f.px(x + i, y, lit(t, sky, light > 0.7 ? 3 : light > 0.3 ? 2 : 1));
-      }
-    }
   }
 }
 
@@ -262,7 +247,6 @@ export function entranceSign(f: Frame, sky: Sky, b: BoardSpec) {
   const y0 = Math.floor(b.y0) - m.padY - 1;
   const y1 = Math.ceil(b.y1) + m.padY + 1;
   const w = m.frame + 1;
-  posts(f, sky, x0 + m.padX, x1 - m.padX, y1 + w, m.post + 1, b.sunSide);
   paintFace(f, sky, x0, y0, x1, y1, b.seed);
   // The routed border groove, picked out in cream like the letters would be.
   const groove = pack(mix(mix(PAINT, CREAM, 0.42), sky.light, 0.05));
@@ -277,7 +261,7 @@ export function entranceSign(f: Frame, sky: Sky, b: BoardSpec) {
   f.hline(x0 - w - 1, x1 + w, y0 - w, lit(t, sky, 2));
 }
 
-/** A trailhead kiosk: roof, painted panel, posts, and a wing of pinned things facing the scene. */
+/** A trailhead kiosk: roof, painted panel, and a wing of pinned things facing the scene. */
 export function kiosk(f: Frame, sky: Sky, b: BoardSpec) {
   const m = metrics(f.w, f.h);
   const stacked = b.side === 'bottom';
@@ -290,7 +274,6 @@ export function kiosk(f: Frame, sky: Sky, b: BoardSpec) {
   if (stacked) y0 -= m.band;
   else if (wingRight) x1 += m.wing;
   else x0 -= m.wing;
-  posts(f, sky, x0 + 2, x1 - 2, y1 + m.frame, m.post, b.sunSide);
   paintFace(f, sky, x0, y0, x1, y1, b.seed);
   frameAround(f, sky, x0, y0, x1, y1, m.frame, b.sunSide);
   roof(f, sky, x0 - m.frame, x1 + m.frame, y0 - m.frame, m.roof, b.seed);
