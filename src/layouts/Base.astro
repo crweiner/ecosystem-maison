@@ -26,12 +26,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="theme-color" content="#2a1b3d" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ecosystem.maison" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={new URL('/og.png', Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A pixel-art deer grazing by a forest pond at sunrise, beside a wooden sign reading Welcome to our Ecosystem." />
     <meta name="twitter:card" content="summary_large_image" />
     {/* Mark scripting before first paint, so a visit without it keeps the still sky. */}
     <script is:inline>document.documentElement.classList.add('js');</script>
