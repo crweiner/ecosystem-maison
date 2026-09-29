@@ -14,6 +14,8 @@ colors:
   drop: "rgb(8 8 14 / 0.7)"
   focus: "#ffe39a"
   dawn-plum: "#2a1b3d"
+  board-paint: "#2c1d15"
+  board-wood: "#7a5234"
 typography:
   display:
     fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
