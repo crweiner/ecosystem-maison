@@ -176,7 +176,7 @@ The HTML layer is flat. Depth is the world's: three hazed ridges (far mountains,
 - **Plate floor** (`filter: drop-shadow(0 var(--px) 0 var(--gold-deep))`): the primary plate stands on one world pixel of burnt umber; the ghost plate stands on night at 60%.
 - **Mark drop** (`drop-shadow(0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.55 to 0.6))`): product logos, the sun mark, index ticks.
 
-**The Near Bough Rule.** Words beside a clearing sit in the shadow of a near conifer bough that reaches in from beyond the frame edge on the words' side: drooping tiers in near-ink that reach just past the copy, with light only at the needle tips, tapering away above and below the copy and scrolling with it. It never darkens open sky. Stacked (phone and portrait) layouts put the words on the dark forest floor instead. A small fixed readout ("3 / 7 · WordPress VIP") opposite the masthead names the current clearing on every screen, including touch.
+Open item: on daylight clearings, words over bright sky rely on a dithered shade pool (anchored to the copy, so it moves as one piece) that can read as a dark cloud. It is not a system rule. A foreground conifer bough behind the copy was tried and reverted at the owner's request. A small fixed readout ("3 / 7 · WordPress VIP") opposite the masthead names the current clearing on every screen, including touch.
 
 ### Named Rules
 **The Hard Light Rule.** Light falls in stepped, flat bands and shadows are hard. Where the world needs a gradient (sun glow, sky, mist, shade) it steps through dithered bands; no smooth gradient appears on the canvas or in the fallback sky.
