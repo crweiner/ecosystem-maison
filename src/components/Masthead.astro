@@ -1,0 +1,46 @@
+---
+import SunMark from './SunMark.astro';
+
+interface Props {
+  /** Where the mark leads: the top of this page on the home page, the home page elsewhere. */
+  href: string;
+}
+const { href } = Astro.props;
+---
+
+<header class="masthead">
+  <a href={href} class="masthead__mark">
+    <SunMark />
+    <span class="caption">ecosystem.maison</span>
+  </a>
+</header>
+
+<style>
+  .masthead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    padding: max(clamp(1.25rem, 2.6vw, 2.25rem), env(safe-area-inset-top)) var(--gutter-right) 0 var(--gutter-left);
+  }
+
+  .masthead__mark {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    max-width: 100%;
+    gap: calc(var(--px) * 3 + 0.25rem);
+    padding-block: 0.5rem;
+    margin-block: -0.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    text-shadow: var(--type-shadow);
+  }
+
+  .masthead__mark .caption {
+    line-height: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+</style>

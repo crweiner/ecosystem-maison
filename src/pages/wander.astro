@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
 import { trackedTargets } from '../data/products';
 
 const list = trackedTargets('wander-list');
@@ -11,8 +12,11 @@ const targets = trackedTargets('wander-link');
   description="A link that takes you to one of Automattic's WordPress products at random."
   noindex
 >
+  <Masthead href="/" />
   <main id="main" class="wander-page">
     <h1 class="display">Pick a path through the ecosystem</h1>
+    {/* Only a visit without scripting ever stays long enough to read this. */}
+    <noscript><p class="wander-page__why">The deer usually picks a path for you, but it can't run without JavaScript. Choose one yourself.</p></noscript>
     <ul>
       {list.map((t) => <li><a href={t.url}>{t.name}</a></li>)}
     </ul>
@@ -68,6 +72,16 @@ const targets = trackedTargets('wander-link');
 
   li a:hover {
     color: var(--gold-bright);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: max(2px, calc(var(--px) / 2));
+  }
+
+  .wander-page__why {
+    max-width: 38ch;
+    font-size: var(--type-title);
+    line-height: 1.4;
+    color: var(--ink-soft);
   }
 
   .wander-page__home {

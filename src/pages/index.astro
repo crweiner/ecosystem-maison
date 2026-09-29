@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Stop from '../components/Stop.astro';
 import StopIndex from '../components/StopIndex.astro';
-import SunMark from '../components/SunMark.astro';
+import Masthead from '../components/Masthead.astro';
 import Icon from '../components/Icon.astro';
 import { closeScene, heroScene, products, referral, trackedTargets } from '../data/products';
 
@@ -16,12 +16,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 >
   <canvas slot="world" class="forest" id="forest" aria-hidden="true"></canvas>
 
-  <header class="masthead">
-    <a href="#top" class="masthead__mark">
-      <SunMark />
-      <span class="caption">ecosystem.maison</span>
-    </a>
-  </header>
+  <Masthead href="#top" />
 
   <main id="main">
     <section class="hero" id="top" aria-labelledby="hero-title" data-forest="scene" data-scene={JSON.stringify(heroScene)} data-deer>
@@ -89,22 +84,11 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 
 <script>
   import { startForest, type ForestController } from '../scripts/forest/engine';
+  import { placeSun } from '../scripts/sun';
 
   const root = document.documentElement;
   const canvas = document.getElementById('forest') as HTMLCanvasElement;
   const sections = [...document.querySelectorAll<HTMLElement>('[data-forest]')];
-  const sun = document.querySelector<SVGRectElement>('[data-sun]');
-  const radius = Number(sun?.closest('svg')?.dataset.radius ?? 7);
-
-  /** Walk the masthead's pixel sun along its arc for the forest's hour. */
-  function placeSun(hour: number) {
-    if (!sun) return;
-    const t = Math.max(0, Math.min(1, (hour - 6) / (19.4 - 6)));
-    const a = Math.PI - t * Math.PI;
-    sun.setAttribute('x', String(Math.round(radius + Math.cos(a) * radius)));
-    sun.setAttribute('y', String(Math.round(radius - Math.sin(a) * radius)));
-  }
-
   /*
    * The forest is an enhancement. If the canvas cannot start, the page keeps
    * its still stepped sky and every link and button works as a plain link.
@@ -218,34 +202,6 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
 </script>
 
 <style>
-  .masthead {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 5;
-    padding: max(clamp(1.25rem, 2.6vw, 2.25rem), env(safe-area-inset-top)) var(--gutter-right) 0 var(--gutter-left);
-  }
-
-  .masthead__mark {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    max-width: 100%;
-    gap: calc(var(--px) * 3 + 0.25rem);
-    padding-block: 0.5rem;
-    margin-block: -0.5rem;
-    text-decoration: none;
-    color: var(--ink);
-    text-shadow: var(--type-shadow);
-  }
-
-  .masthead__mark .caption {
-    line-height: 1;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
   .hero {
     position: relative;
     min-height: 100vh;

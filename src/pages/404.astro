@@ -1,37 +1,165 @@
 ---
 import Base from '../layouts/Base.astro';
+import Masthead from '../components/Masthead.astro';
+import { lostScene, products } from '../data/products';
 ---
 
 <Base title="Path not found · ecosystem.maison" description="This path through the forest is overgrown." noindex>
-  <main id="main" class="lost">
-    <h1 class="display">This path is overgrown</h1>
-    <p>Nothing grows at this address. The clearing you want is probably back at the start of the trail.</p>
-    <p>
-      <a class="plate" href="/"><span class="plate__face">Back to the forest</span></a>
-    </p>
+  <canvas slot="world" class="forest" id="forest" aria-hidden="true"></canvas>
+
+  <Masthead href="/" />
+
+  <main id="main">
+    <section class="lost" aria-labelledby="lost-title" data-forest="scene" data-scene={JSON.stringify(lostScene)}>
+      <div class="lost__copy" data-copy>
+        <h1 id="lost-title" class="display lost__title">This path is overgrown</h1>
+        <p class="lost__lede">Nothing grows at this address. The clearing you want is probably back at the start of the trail.</p>
+        <a class="plate" href="/"><span class="plate__face">Back to the forest</span></a>
+        {/* The trail's signpost: every clearing, one step away. */}
+        <nav class="signpost" aria-labelledby="signpost-label">
+          <p id="signpost-label" class="caption signpost__label">Or go straight to a clearing</p>
+          <ul>
+            {products.map((p) => <li><a href={`/#${p.slug}`}>{p.name}</a></li>)}
+          </ul>
+        </nav>
+        <p class="visually-hidden">Off the trail, after dark: the deer grazes on alone under the first stars.</p>
+      </div>
+    </section>
   </main>
 </Base>
+
+<script>
+  import { startForest } from '../scripts/forest/engine';
+  import { placeSun } from '../scripts/sun';
+
+  // As on the home page, the forest is an enhancement: without it the words keep their plain board.
+  const canvas = document.getElementById('forest') as HTMLCanvasElement;
+  try {
+    const forest = startForest(canvas, [...document.querySelectorAll<HTMLElement>('[data-forest]')], { onHour: placeSun });
+    document.documentElement.classList.add('has-forest');
+    document.fonts?.ready.then(() => forest.refresh());
+  } catch (err) {
+    console.warn('[ecosystem] forest unavailable:', err);
+    canvas.remove();
+  }
+</script>
 
 <style>
   .lost {
     position: relative;
-    z-index: 1;
     min-height: 100vh;
     min-height: 100svh;
     display: grid;
-    align-content: center;
-    gap: 1.25rem;
-    padding: 5rem var(--gutter-right) 5rem var(--gutter-left);
-    max-width: 40rem;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    padding: 7rem var(--gutter-right) clamp(3rem, 10vh, 7rem) var(--gutter-left);
+  }
+
+  .lost__copy {
+    max-width: min(40rem, 52vw);
     text-shadow: var(--type-shadow);
   }
 
-  h1 {
+  .lost__title {
+    margin: 0 0 clamp(0.9rem, 2.4vh, 1.4rem);
     font-size: var(--type-headline);
+    max-width: 11ch;
   }
 
-  p {
+  .lost__lede {
+    margin: 0 0 clamp(1.5rem, 4.5vh, 2.5rem);
+    max-width: 34ch;
+    text-wrap: pretty;
+    font-size: var(--type-title);
+    line-height: 1.4;
     color: var(--ink-soft);
-    font-size: 1.125rem;
+  }
+
+  /* The signpost: small print under the way home, one marker per clearing. */
+  .signpost {
+    margin-top: clamp(1.5rem, 4vh, 2.25rem);
+    padding-top: 0.9rem;
+    border-top: max(2px, calc(var(--px) / 2)) solid rgb(247 240 226 / 0.18);
+  }
+
+  .signpost__label {
+    margin: 0 0 0.35rem;
+    color: var(--ink-soft);
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--px) * 2);
+    min-height: 2.25rem;
+    font-family: var(--font-pixel);
+    font-size: var(--type-caption);
+    font-weight: 500;
+    color: var(--gold);
+    text-decoration: none;
+  }
+
+  /* A trail marker before each name: the index's pixel tick, standing upright. */
+  li a::before {
+    content: '';
+    flex: none;
+    width: calc(var(--px) * 2);
+    height: calc(var(--px) * 2);
+    background: currentColor;
+    box-shadow: 0 max(2px, calc(var(--px) / 2)) 0 rgb(8 8 14 / 0.6);
+  }
+
+  li a:hover {
+    color: var(--gold-bright);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    text-decoration-thickness: max(2px, calc(var(--px) / 2));
+  }
+
+  @media (pointer: coarse) {
+    li a {
+      min-height: 2.75rem;
+    }
+  }
+
+  /* Stacked: phones and portrait tablets put the words on the forest floor, under the deer. */
+  @media (max-width: 759px), (orientation: portrait) and (max-width: 1099px) {
+    .lost {
+      padding-top: 52vh;
+      padding-top: 52svh;
+      padding-bottom: clamp(2.5rem, 7vh, 4.5rem);
+    }
+
+    .lost__copy {
+      max-width: 34rem;
+    }
+
+    .lost__title {
+      font-size: var(--type-headline-stacked);
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 520px) {
+    .lost {
+      padding-top: 4.5rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .lost__title {
+      font-size: var(--type-headline-short);
+    }
+
+    .lost__lede {
+      margin-bottom: 1rem;
+    }
   }
 </style>

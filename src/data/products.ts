@@ -143,6 +143,9 @@ export const heroScene: Scene = { kind: 'meadow', hour: 6.25, seed: 3 };
 /** The closing clearing: the same deer, at sunset. */
 export const closeScene: Scene = { kind: 'meadow', hour: 19.25, seed: 3 };
 
+/** Off the trail: a clearing the day never reaches, the deer grazing on after dark. */
+export const lostScene: Scene = { kind: 'meadow', hour: 20, seed: 404 };
+
 /** Where a visitor left from, reported to the product's analytics as utm_content. */
 export type ReferralPath = 'wander' | 'stop' | 'wander-link' | 'wander-list' | 'colophon';
 
