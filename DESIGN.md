@@ -19,7 +19,7 @@ colors:
 typography:
   display:
     fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
-    fontSize: "clamp(2.6rem, min(1rem + 5.4vw, 13vh), 6rem)"
+    fontSize: "clamp(2.4rem, min(0.8rem + 4.2vw, 11vh), 5rem)"
     fontWeight: 600
     lineHeight: 0.98
     letterSpacing: "0.005em"
@@ -32,6 +32,36 @@ typography:
   verse:
     fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
     fontSize: "clamp(0.95rem, calc(100cqi / var(--measure, 20)), 2.1rem)"
+    fontWeight: 450
+    lineHeight: 1.34
+  display-stacked:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(2.3rem, 11vw, 4.25rem)"
+    fontWeight: 600
+    lineHeight: 0.98
+  display-short:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(1.9rem, 13vh, 3rem)"
+    fontWeight: 600
+    lineHeight: 0.98
+  headline-stacked:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(2.1rem, 10vw, 3.75rem)"
+    fontWeight: 600
+    lineHeight: 0.98
+  headline-short:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(1.8rem, 12vh, 2.75rem)"
+    fontWeight: 600
+    lineHeight: 0.98
+  verse-stacked:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(1rem, calc(100cqi / var(--measure, 20)), 1.75rem)"
+    fontWeight: 450
+    lineHeight: 1.34
+  verse-short:
+    fontFamily: "'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif"
+    fontSize: "clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.35rem)"
     fontWeight: 450
     lineHeight: 1.34
   title:
@@ -142,6 +172,8 @@ The HTML palette is tiny and warm (cream ink, sun-gold, near-black night); every
 
 **Display Font:** Pixelify Sans Variable (with ui-sans-serif)
 **Body Font:** Atkinson Hyperlegible Next Variable (with ui-sans-serif, system-ui)
+
+Every size is a `--type-*` token in `src/styles/global.css` (display, headline and verse each with wide, stacked and short steps; title; label; caption), and components reference the tokens rather than literal sizes. The frame decides the step: side-by-side layouts use the wide step, phones and portrait tablets the stacked step, phones on their side the short step.
 
 **Character:** A pixel-grid face for the words that belong to the world (titles, haikus, wordmark, index labels) and a hyperlegible humanist for the words you have to read or act on (ledes, taglines, plate labels). The root size scales with the viewport, `clamp(100%, 0.3vw + 0.62vh + 0.1rem, 150%)`, so type keeps its weight against an ultrawide forest.
 

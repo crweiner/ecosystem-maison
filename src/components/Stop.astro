@@ -105,8 +105,7 @@ const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[
     margin: 0 0 clamp(1.5rem, 4.8vh, 2.5rem);
     font-family: var(--font-pixel);
     font-weight: 450;
-    font-size: clamp(1.1rem, 0.9rem + 1.1vw, 2rem);
-    font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 2.1rem);
+    font-size: var(--type-verse);
     line-height: 1.34;
     color: var(--ink);
   }
@@ -161,11 +160,11 @@ const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[
 
     /* The haiku stays the scene's voice: never set smaller than the tagline. */
     .stop__tagline {
-      font-size: 0.9375rem;
+      font-size: var(--type-caption);
     }
 
     .stop__haiku {
-      font-size: clamp(1rem, calc(100cqi / var(--measure, 20)), 1.75rem);
+      font-size: var(--type-verse-stacked);
     }
   }
 
@@ -181,7 +180,7 @@ const measure = Math.max(...product.haiku.map((l, i) => l.length * 0.56 + steps[
 
     .stop__haiku {
       margin-bottom: 1rem;
-      font-size: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.35rem);
+      font-size: var(--type-verse-short);
     }
   }
 </style>

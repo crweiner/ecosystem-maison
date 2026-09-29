@@ -19,9 +19,29 @@
   --night: #0d0d16;
   --earth: #121016;
   --focus: #ffe39a;
+  --board-paint: #2c1d15;
+  --board-wood: #7a5234;
 
   --font-pixel: 'Pixelify Sans Variable', 'Pixelify Sans', ui-sans-serif, sans-serif;
   --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * The type ramp. Titles and verse each have a wide (side-by-side), a stacked
+   * (phone and portrait) and a short (phone on its side) step, because the
+   * frame, not only the width, decides how big they can be.
+   */
+  --type-display: clamp(2.4rem, min(0.8rem + 4.2vw, 11vh), 5rem);
+  --type-display-stacked: clamp(2.3rem, 11vw, 4.25rem);
+  --type-display-short: clamp(1.9rem, 13vh, 3rem);
+  --type-headline: clamp(2.2rem, min(0.9rem + 4vw, 11vh), 4.75rem);
+  --type-headline-stacked: clamp(2.1rem, 10vw, 3.75rem);
+  --type-headline-short: clamp(1.8rem, 12vh, 2.75rem);
+  --type-verse: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 2.1rem);
+  --type-verse-stacked: clamp(1rem, calc(100cqi / var(--measure, 20)), 1.75rem);
+  --type-verse-short: clamp(0.95rem, calc(100cqi / var(--measure, 20)), 1.35rem);
+  --type-title: clamp(1.15rem, 0.95rem + 0.75vw, 1.5rem);
+  --type-label: clamp(1rem, 0.94rem + 0.25vw, 1.1875rem);
+  --type-caption: 0.9375rem;
 
   --gutter: clamp(1.25rem, 5vw, 5.5rem);
   --gutter-left: max(var(--gutter), env(safe-area-inset-left));
@@ -179,8 +199,8 @@ html:not(.has-forest) .sky-fallback {
 /* Without the forest, the words keep a plain painted board of their own. */
 html:not(.has-forest) [data-copy] {
   padding: 1.25rem 1.5rem 1.5rem;
-  background: #2c1d15;
-  box-shadow: inset 0 0 0 var(--px) #7a5234;
+  background: var(--board-paint);
+  box-shadow: inset 0 0 0 var(--px) var(--board-wood);
 }
 
 /* ---- Type --------------------------------------------------------------- */
@@ -199,7 +219,7 @@ html:not(.has-forest) [data-copy] {
 
 .caption {
   font-family: var(--font-pixel);
-  font-size: 0.9375rem;
+  font-size: var(--type-caption);
   font-weight: 500;
   letter-spacing: 0.02em;
 }
@@ -220,7 +240,7 @@ html:not(.has-forest) [data-copy] {
   min-height: 2.75rem;
   color: var(--plate-fg);
   font-family: var(--font-text);
-  font-size: clamp(1rem, 0.94rem + 0.25vw, 1.1875rem);
+  font-size: var(--type-label);
   font-weight: 700;
   letter-spacing: 0.01em;
   line-height: 1.15;
