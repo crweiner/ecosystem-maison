@@ -255,8 +255,8 @@
       },
       {
         "name": "scroll-clock",
-        "value": "hour interpolated by scroll, quantized to 1/20 hour",
-        "purpose": "The sky, sun mark and lighting advance exactly with scroll; trunk wall 2.4 frames wide crosses each 125svh gap."
+        "value": "each clearing painted once at its own hour; the hour interpolates only behind the wall",
+        "purpose": "No whole-frame re-tinting while scrolling. The sun mark tracks the hour continuously; a trunk wall one frame wide crosses each 50svh gap plus half a screen either side, every rank entering and leaving off-frame."
       },
       {
         "name": "wind",
