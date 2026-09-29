@@ -75,10 +75,63 @@ export function foliage(
     return v + (noise2(x * 0.28, y * 0.28, seed) - 0.5) * 0.55 + (noise2(x * 0.7, y * 0.7, seed + 1) - 0.5) * 0.2;
   };
   const sunDir = Math.sign(sunX - (x0 + x1) / 2) || 1;
-  for (let y = Math.floor(y0); y <= y1; y++) {
-    for (let x = Math.floor(x0); x <= x1; x++) {
+  const bx = Math.floor(x0);
+  const by = Math.floor(y0);
+  const bw = Math.ceil(x1) - bx + 1;
+  const bh = Math.ceil(y1) - by + 1;
+  // First pass: which pixels are leaves.
+  const mask = new Uint8Array(bw * bh);
+  for (let j = 0; j < bh; j++) {
+    for (let i = 0; i < bw; i++) {
+      const x = bx + i;
+      const y = by + j;
       const v = field(x, y);
       if (v < 0.2) continue;
+      if (v < 0.28 && bayer(x, y) < 6) continue;
+      mask[j * bw + i] = 1;
+    }
+  }
+  // Keep only leaves that belong to the crown: noise can leave tiny islands
+  // floating off the edge, and those read as stray specks in the sky.
+  const label = new Int32Array(bw * bh).fill(-1);
+  const sizes: number[] = [];
+  const stack: number[] = [];
+  for (let k = 0; k < mask.length; k++) {
+    if (!mask[k] || label[k] >= 0) continue;
+    const id = sizes.length;
+    let n = 0;
+    label[k] = id;
+    stack.push(k);
+    while (stack.length) {
+      const q = stack.pop()!;
+      n++;
+      const qi = q % bw;
+      const qj = (q - qi) / bw;
+      for (let dj = -1; dj <= 1; dj++) {
+        for (let di = -1; di <= 1; di++) {
+          const ni = qi + di;
+          const nj = qj + dj;
+          if (ni < 0 || nj < 0 || ni >= bw || nj >= bh) continue;
+          const nk = nj * bw + ni;
+          if (mask[nk] && label[nk] < 0) {
+            label[nk] = id;
+            stack.push(nk);
+          }
+        }
+      }
+    }
+    sizes.push(n);
+  }
+  const largest = Math.max(0, ...sizes);
+  const minSize = Math.max(40, largest * 0.05);
+  // Second pass: light and paint the crown.
+  for (let j = 0; j < bh; j++) {
+    for (let i = 0; i < bw; i++) {
+      const k = j * bw + i;
+      if (!mask[k] || sizes[label[k]] < minSize) continue;
+      const x = bx + i;
+      const y = by + j;
+      const v = field(x, y);
       // Light from above and from the sun's side: compare with the neighbour toward the light.
       const above = field(x - sunDir * 1.5, y - 2.5);
       const clump = noise2(x * 0.45, y * 0.45, seed + 7);
@@ -87,7 +140,6 @@ export function foliage(
       else if (above < v - 0.12 && clump > 0.45) t = 3;
       if (v > 0.55 && clump < 0.32) t = 1;
       if (y > (y0 + y1) / 2 + (y1 - y0) * 0.22 && t > 2) t--;
-      if (v < 0.28 && bayer(x, y) < 6) continue;
       let c = tones[t];
       if (accent && hash(x, y, seed + 3) < accent.rate) c = accent.tone;
       f.px(x, y, c);

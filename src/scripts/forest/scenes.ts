@@ -40,6 +40,29 @@ export interface Input {
   py: number;
   pointer: boolean;
   reduced: boolean;
+  /** A tap or click on the world this frame, in world pixels. */
+  tap: { x: number; y: number } | null;
+}
+
+/** A short-lived speck of the world: a splash drop, a falling leaf, a puff of pollen, a moth. */
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  g: number;
+  life: number;
+  rgb: RGB;
+  kind: 'drop' | 'leaf' | 'petal' | 'spark' | 'moth';
+  seed: number;
+}
+
+interface Ripple {
+  x: number;
+  y: number;
+  age: number;
+  max: number;
+  size: number;
 }
 
 const LEAF = new Material(hex('#3d6a33'));
@@ -117,6 +140,14 @@ export class ForestScene {
   private runDone: (() => void) | null = null;
   /** Off-screen layer for drawing a figure before tracing its rim light. */
   private scratch: Frame;
+  /** What the visitor's hand has stirred up: splashes, leaves, pollen, ripples. */
+  private particles: Particle[] = [];
+  private ripples: Ripple[] = [];
+  /** A press into the grass, flattening it outward for a moment. */
+  private press: { x: number; y: number; age: number } | null = null;
+  private wake = { x: -999, y: -999, t: 0 };
+  /** The latest input, for painters that bend toward or away from the pointer. */
+  private ptr: Input | null = null;
 
   constructor(
     public spec: Scene,
@@ -670,6 +701,9 @@ export class ForestScene {
   update(i: Input) {
     const s = this.state;
     const dt = Math.min(0.1, i.dt);
+    this.ptr = i;
+    this.updateFx(i, dt);
+    if (i.tap) this.handleTap(i.tap.x, i.tap.y, i);
     switch (this.spec.kind) {
       case 'meadow':
         this.updateDeer(i, dt);
@@ -765,8 +799,10 @@ export class ForestScene {
         this.paintFireflies(f, sky, i.t);
         break;
     }
+    this.paintRipples(f, sky);
     const waterScene = this.spec.kind === 'beavers' || this.spec.kind === 'bear';
     if (!waterScene) this.paintGrass(f, sky, i);
+    this.paintParticles(f, sky, i.t);
     if (this.spec.kind === 'fireflies') this.paintFerns(f, sky, i.t);
     // Stacked layouts keep the forest floor under the words clean.
     else if (this.L.textSide !== 'bottom') this.foreground(f, sky, i.t);
@@ -846,6 +882,324 @@ export class ForestScene {
       if (hash(i, 14, this.seed) < 0.3) {
         const x = Math.round(x0 + (lean + sway) * h * 0.9);
         f.rect(x - 1, H - h - 2, 2, 3, dark);
+      }
+    }
+  }
+
+  /* ------------------------------------------------------ interaction */
+
+  /** The open water in this clearing, if any: [surface, bottom]. */
+  private waterBand(): [number, number] | null {
+    const s = this.state;
+    if (this.spec.kind === 'meadow') return [s.pondTop, s.pondBot];
+    if (this.spec.kind === 'beavers') return [s.waterTop, s.waterBot];
+    if (this.spec.kind === 'bear') return [s.riverTop, s.riverBot];
+    return null;
+  }
+
+  /** How far the pointer pushes a stem at x whose top is at y (world pixels, signed). */
+  private push(x: number, top: number, bottom: number, reach = 9): number {
+    const i = this.ptr;
+    let lean = 0;
+    if (i?.pointer && i.py > top - 4 && i.py < bottom + 4) {
+      const dx = x - i.px;
+      if (Math.abs(dx) < reach) lean += Math.sign(dx || 1) * (reach - Math.abs(dx)) * 0.35;
+    }
+    if (this.press) {
+      const dx = x - this.press.x;
+      const r = 6 + this.press.age * 40;
+      if (Math.abs(dx) < r && Math.abs(bottom - this.press.y) < 14) lean += Math.sign(dx || 1) * (1 - this.press.age / 0.6) * 3;
+    }
+    return lean;
+  }
+
+  private groundAt(x: number): number {
+    return this.gy[Math.max(0, Math.min(this.W - 1, Math.round(x)))];
+  }
+
+  /** Whether a tap at (x, y) would stir anything, so the cursor can say so. */
+  hot(x: number, y: number): boolean {
+    const s = this.state;
+    const water = this.waterBand();
+    if (water && y >= water[0] && y < water[1]) return true;
+    const grassy = this.spec.kind !== 'beavers' && this.spec.kind !== 'bear';
+    if (grassy && Math.abs(y - this.groundAt(x)) < 8) return true;
+    switch (this.spec.kind) {
+      case 'meadow': {
+        const d = s.deer;
+        return Math.abs(x - d.x) < 18 && y > this.groundAt(d.x) - 34 && y < this.groundAt(d.x) + 2;
+      }
+      case 'beavers':
+        return Math.abs(x - s.lodgeX) < s.lodgeR + 4 && y > s.lodgeY - s.lodgeR;
+      case 'squirrels':
+        return Math.abs(x - s.trunkX) < this.hS * 0.36 && y > s.canopyY - this.hS * 0.24 && y < this.hS;
+      case 'bear':
+        return Math.abs(x - s.fx) < s.fw * 4 + 16 && y > s.cliffTop - 6;
+      case 'hummingbird':
+        return Math.abs(x - this.L.stageX) < this.L.stageW * 0.3 && y > this.hS - this.hS * 0.45;
+      case 'web':
+        return Math.hypot(x - s.cx, y - s.cy) < s.R * 1.1;
+      case 'bees':
+        return (Math.abs(x - s.hiveX) < this.hS * 0.26 && y > this.hS - this.hS * 0.72) || Math.abs(x - this.L.stageX) < this.L.stageW * 0.55;
+      case 'fireflies':
+        return y > this.hS * 0.2 && y < this.hS;
+    }
+    return false;
+  }
+
+  private spawn(n: number, x: number, y: number, kind: Particle['kind'], rgb: RGB, spread: { vx: number; vy: number; up: number; g: number; life: number }) {
+    for (let k = 0; k < n && this.particles.length < 160; k++) {
+      const r = Math.random();
+      this.particles.push({
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 2 * spread.vx,
+        vy: -spread.up * (0.5 + r * 0.5) + (Math.random() - 0.5) * spread.vy,
+        g: spread.g,
+        life: spread.life * (0.6 + Math.random() * 0.4),
+        rgb,
+        kind,
+        seed: Math.random() * 10,
+      });
+    }
+  }
+
+  /** A splash: a ring on the surface and a crown of drops. */
+  private splash(x: number, y: number, big: boolean) {
+    this.ripples.push({ x, y, age: 0, max: big ? 1.6 : 1.1, size: big ? 16 : 10 });
+    if (big) this.ripples.push({ x, y, age: -0.25, max: 1.4, size: 11 });
+    this.spawn(big ? 14 : 8, x, y - 1, 'drop', [226, 238, 246], { vx: big ? 30 : 20, vy: 10, up: big ? 85 : 60, g: 190, life: 1.2 });
+  }
+
+  private updateFx(i: Input, dt: number) {
+    const water = this.waterBand();
+    // Particles fall, drift and fade; drops that land on water leave a small ring.
+    for (const p of this.particles) {
+      p.vy += p.g * dt;
+      if (p.kind === 'leaf' || p.kind === 'petal') {
+        p.vx *= 1 - dt * 1.5;
+        p.x += Math.sin(i.t * 5 + p.seed) * 7 * dt;
+      } else if (p.kind === 'moth') {
+        p.vx += (Math.random() - 0.5) * 120 * dt;
+        p.vy += (Math.random() - 0.6) * 90 * dt;
+        p.vx *= 1 - dt * 2;
+        p.vy *= 1 - dt * 2;
+      } else if (p.kind === 'spark') {
+        p.vx *= 1 - dt * 2.5;
+        p.vy *= 1 - dt * 2.5;
+      }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.kind === 'drop' && water && p.vy > 0 && p.y >= water[0] && p.y < water[1]) {
+        this.ripples.push({ x: p.x, y: p.y, age: 0, max: 0.6, size: 3 });
+        p.life = 0;
+      }
+      if ((p.kind === 'leaf' || p.kind === 'petal') && p.y >= this.groundAt(p.x) - 1) {
+        p.y = this.groundAt(p.x) - 1;
+        p.vx = 0;
+        p.vy = 0;
+        p.g = 0;
+      }
+    }
+    this.particles = this.particles.filter((p) => p.life > 0 && p.y < this.H + 4 && p.x > -4 && p.x < this.W + 4);
+    for (const r of this.ripples) r.age += dt;
+    this.ripples = this.ripples.filter((r) => r.age < r.max);
+    if (this.press) {
+      this.press.age += dt;
+      if (this.press.age > 0.6) this.press = null;
+    }
+    // A pointer drawn across water leaves a trailing wake.
+    if (water && i.pointer && i.py >= water[0] && i.py < water[1]) {
+      const moved = Math.hypot(i.px - this.wake.x, i.py - this.wake.y);
+      if (moved > 2 && i.t - this.wake.t > 0.12) {
+        this.ripples.push({ x: i.px, y: i.py, age: 0, max: 0.9, size: 5 });
+        this.wake = { x: i.px, y: i.py, t: i.t };
+      }
+    }
+  }
+
+  /** What a tap does, clearing by clearing. */
+  private handleTap(x: number, y: number, i: Input) {
+    const s = this.state;
+    const water = this.waterBand();
+    const inWater = !!water && y >= water[0] && y < water[1];
+    const onGround = this.spec.kind !== 'beavers' && this.spec.kind !== 'bear' && Math.abs(y - this.groundAt(x)) < 10;
+    if (onGround) this.press = { x, y, age: 0 };
+    switch (this.spec.kind) {
+      case 'meadow': {
+        const d = s.deer;
+        const gy = this.groundAt(d.x);
+        if (d.mode !== 'run' && d.mode !== 'startle' && Math.abs(x - d.x) < 18 && y > gy - 34 && y < gy + 2) {
+          // Startled, he hops a few steps away from the hand, then looks back.
+          d.mode = 'hop';
+          d.hopDir = x < d.x ? 1 : -1;
+          const room = this.L.stageW * 0.32;
+          if (Math.abs(d.x + d.hopDir * 14 - this.L.stageX) > room) d.hopDir = -d.hopDir;
+          d.dir = d.hopDir;
+          d.timer = 0.6;
+          d.gait = 0;
+          d.ears = 1;
+          d.tail = 1;
+          return;
+        }
+        if (inWater) this.splash(x, y, false);
+        else if (onGround) this.spawn(3, x, y - 2, 'moth', [244, 238, 222], { vx: 14, vy: 6, up: 26, g: -6, life: 2.6 });
+        return;
+      }
+      case 'beavers': {
+        const sw = s.swimmer;
+        if (sw.under <= 0 && Math.abs(x - sw.x) < 14 && Math.abs(y - s.swimY) < 8) {
+          // The alarm: a tail slap, a big splash, and a dive.
+          this.splash(sw.x - sw.dir * 3, s.swimY, true);
+          sw.under = 3.5;
+          return;
+        }
+        if (inWater) this.splash(x, y, false);
+        return;
+      }
+      case 'squirrels': {
+        const cy = s.canopyY - this.hS * 0.07;
+        if (y < s.canopyY + 2 && Math.abs(x - s.trunkX) < this.hS * 0.36) {
+          // Shake the crown: leaves let go, and a few acorns drop.
+          const autumn: RGB[] = [[184, 106, 44], [206, 150, 58], [96, 140, 60]];
+          for (let k = 0; k < 10; k++) this.spawn(1, x + (Math.random() - 0.5) * 16, y + (Math.random() - 0.5) * 6, 'leaf', autumn[k % 3], { vx: 8, vy: 4, up: 4, g: 22, life: 5 });
+          for (let k = 0; k < 3; k++) s.falling.push({ x: x + (Math.random() - 0.5) * 14, y: Math.min(y, cy + this.hS * 0.08), vy: -10 - Math.random() * 10, bounced: false });
+          return;
+        }
+        if (Math.abs(x - s.trunkX) < s.tw + 10) {
+          // Startle the squirrels: the climber hurries, the sitter turns.
+          s.climber.fast = 2.2;
+          s.sitter.dir = -s.sitter.dir;
+        }
+        return;
+      }
+      case 'bear': {
+        if (inWater) this.splash(x, y, Math.abs(x - s.bear.x) < 16);
+        if (Math.abs(x - s.fx) < s.fw * 4 + 16) {
+          // Salmon run: one leaps now, and this time the bear is ready.
+          if (!s.salmon) {
+            s.leaps = 2;
+            s.leapTimer = 0;
+          }
+          if (y < s.riverTop) this.spawn(6, x, y, 'spark', [236, 244, 250], { vx: 20, vy: 12, up: 8, g: 30, life: 0.8 });
+        }
+        return;
+      }
+      case 'hummingbird': {
+        let best = -1;
+        let bestD = 1e9;
+        s.spikes.forEach((sp: any, k: number) => {
+          const g = this.groundAt(sp.x);
+          const d = Math.abs(x - sp.x);
+          if (d < 6 && y > g - sp.h - 3 && y < g + 2 && d < bestD) {
+            best = k;
+            bestD = d;
+          }
+        });
+        if (best >= 0) {
+          const sp = s.spikes[best];
+          sp.kv = (sp.kv ?? 0) + (x < sp.x ? 1 : -1) * 5;
+          const g = this.groundAt(sp.x);
+          this.spawn(5, sp.x, g - sp.h * 0.7, 'petal', [206, 82, 150], { vx: 10, vy: 4, up: 6, g: 18, life: 4 });
+          s.bird.forced = best;
+          s.bird.hover = 0;
+        }
+        return;
+      }
+      case 'web': {
+        if (Math.hypot(x - s.cx, y - s.cy) < s.R * 1.1) {
+          s.wob = { x, y, amp: 1.8 };
+          s.spider.target = { x, y };
+          s.spider.t = 0;
+          this.spawn(3, x, y, 'drop', [236, 244, 250], { vx: 6, vy: 2, up: 0, g: 150, life: 2 });
+        }
+        return;
+      }
+      case 'bees': {
+        if (Math.abs(x - s.hiveX) < this.hS * 0.26 && y < this.hS - this.hS * 0.3 && y > this.hS - this.hS * 0.72) {
+          // Shake the lime tree: blossom falls and the colony pours out.
+          for (let k = 0; k < 10; k++) this.spawn(1, x + (Math.random() - 0.5) * 16, y, 'petal', k % 2 ? [250, 236, 214] : [240, 196, 206], { vx: 8, vy: 4, up: 4, g: 16, life: 5 });
+          for (const b of s.bees) if (b.home || b.wait > 0) {
+            b.home = false;
+            b.wait = Math.random() * 0.4;
+            b.x = s.door?.x ?? s.hiveX;
+            b.y = s.door?.y ?? this.hS - s.hiveH;
+          }
+          return;
+        }
+        // A tapped flower puffs its pollen, and the nearest bees come to it.
+        let best = -1;
+        let bestD = 1e9;
+        s.flowers.forEach((fl: any, k: number) => {
+          const d = Math.abs(x - fl.x) + Math.abs(y - (this.groundAt(fl.x) - fl.h)) * 0.5;
+          if (d < bestD) {
+            bestD = d;
+            best = k;
+          }
+        });
+        if (best >= 0 && bestD < 14) {
+          const fl = s.flowers[best];
+          this.spawn(7, fl.x, this.groundAt(fl.x) - fl.h - 1, 'spark', [255, 204, 70], { vx: 14, vy: 8, up: 10, g: 12, life: 1.2 });
+          for (const b of s.bees) {
+            if (Math.hypot(b.x - fl.x, b.y - (this.groundAt(fl.x) - fl.h)) < 90) {
+              b.target = best;
+              b.home = false;
+              b.wait = Math.min(b.wait, Math.random() * 0.3);
+            }
+          }
+        }
+        return;
+      }
+      case 'fireflies': {
+        // Every firefly near the hand answers at once: a shared flash.
+        for (const fl of s.flies) {
+          const d = Math.hypot(fl.x - x, fl.y - y);
+          if (d < 46) {
+            fl.phase = fl.period - (i.t % fl.period) + d * 0.004;
+            fl.x += (x - fl.x) * 0.25;
+            fl.y += (y - fl.y) * 0.25;
+          }
+        }
+        return;
+      }
+    }
+  }
+
+  private paintRipples(f: Frame, sky: Sky) {
+    const water = this.waterBand();
+    if (!water || !this.ripples.length) return;
+    const c = mix(sky.light, [255, 255, 255], 0.35);
+    for (const r of this.ripples) {
+      if (r.age < 0) continue;
+      const k = r.age / r.max;
+      const R = 1 + r.size * Math.pow(k, 0.6);
+      const strength = (1 - k) * 0.65;
+      const steps = Math.max(10, Math.round(R * 5));
+      for (let a = 0; a < steps; a++) {
+        const th = (a / steps) * Math.PI * 2;
+        const x = Math.round(r.x + Math.cos(th) * R);
+        const y = Math.round(r.y + Math.sin(th) * R * 0.32);
+        if (y < water[0] || y >= water[1]) continue;
+        f.px(x, y, blend(f.get(x, y), c, strength));
+      }
+    }
+  }
+
+  private paintParticles(f: Frame, sky: Sky, t: number) {
+    for (const p of this.particles) {
+      const x = Math.round(p.x);
+      const y = Math.round(p.y);
+      const c = pack(mix(p.rgb, sky.shade, sky.dim * 0.35));
+      const fade = Math.min(1, p.life * 2);
+      if (p.kind === 'moth') {
+        const flap = Math.floor(t * 16 + p.seed) % 2;
+        f.px(x, y, c);
+        f.px(x + (flap ? -1 : 1), y - flap, blend(f.get(x + (flap ? -1 : 1), y - flap), p.rgb, 0.7));
+      } else if (p.kind === 'spark') {
+        f.px(x, y, blend(f.get(x, y), p.rgb, 0.4 + 0.6 * fade));
+      } else {
+        f.px(x, y, fade >= 1 ? c : blend(f.get(x, y), p.rgb, fade));
       }
     }
   }
@@ -938,7 +1292,7 @@ export class ForestScene {
     const c = LEAF_DEEP.tones(sky);
     const head = BARK.tones(sky)[1];
     for (const rd of reeds) {
-      const bend = Math.round(wind(rd.x, t, this.W) * 1.4);
+      const bend = Math.round(wind(rd.x, t, this.W) * 1.4 + this.push(rd.x, shoreY - rd.h, shoreY));
       for (let j = 0; j < rd.h; j++) f.px(rd.x + (j > rd.h * 0.6 ? bend : 0), shoreY - j, c[1]);
       f.px(rd.x + bend, shoreY - rd.h, head);
       f.px(rd.x + bend, shoreY - rd.h - 1, head);
@@ -1041,6 +1395,17 @@ export class ForestScene {
           d.timer = 5 + Math.random() * 6;
         }
         break;
+      case 'hop':
+        // A few quick bounds away from the hand, then he stops and looks back.
+        d.gait += dt * 15;
+        d.x += d.hopDir * 34 * dt;
+        if (d.timer <= 0) {
+          d.gait = NaN;
+          d.mode = 'look';
+          d.timer = 1.6;
+          d.dir = -d.hopDir;
+        }
+        break;
       case 'startle':
         approach('head', 1, 18);
         d.ears = 1;
@@ -1087,20 +1452,23 @@ export class ForestScene {
   private updateSquirrels(i: Input, dt: number) {
     const s = this.state;
     const c = s.climber;
-    c.t += dt;
+    // A startled climber hurries for a moment.
+    const k = (c.fast ?? 0) > 0 ? 2.4 : 1;
+    c.fast = Math.max(0, (c.fast ?? 0) - dt);
+    c.t += dt * k;
     const baseY = this.hS - 3;
     const trunkEdge = s.trunkX - this.sunSide * (s.tw / 2 + 1) * 0 + (this.sunSide > 0 ? -s.tw / 2 - 1 : s.tw / 2 + 1) * -1;
     void trunkEdge;
     switch (c.phase) {
       case 'down':
-        c.y += 22 * dt;
+        c.y += 22 * dt * k;
         if (c.y >= baseY) {
           c.phase = 'toPile';
           c.x = 0;
         }
         break;
       case 'toPile':
-        c.x += 14 * dt;
+        c.x += 14 * dt * k;
         if (c.x > 8) {
           c.phase = 'forage';
           c.t = 0;
@@ -1113,11 +1481,11 @@ export class ForestScene {
         }
         break;
       case 'back':
-        c.x -= 14 * dt;
+        c.x -= 14 * dt * k;
         if (c.x <= 0) c.phase = 'up';
         break;
       case 'up':
-        c.y -= 18 * dt;
+        c.y -= 18 * dt * k;
         if (c.y <= s.hollowY + 3) {
           c.phase = 'stash';
           c.t = 0;
@@ -1254,6 +1622,11 @@ export class ForestScene {
   private updateHummer(i: Input, dt: number) {
     const s = this.state;
     const b = s.bird;
+    // Tapped spikes spring back and forth, then settle.
+    for (const sp of s.spikes) {
+      sp.kv = (sp.kv ?? 0) + (-(sp.kick ?? 0) * 60 - (sp.kv ?? 0) * 5) * dt;
+      sp.kick = (sp.kick ?? 0) + sp.kv * dt;
+    }
     if (b.dart > 0) {
       b.dart -= dt;
       const k = 1 - Math.max(0, b.dart) / 0.22;
@@ -1273,7 +1646,8 @@ export class ForestScene {
         ty = i.py;
         b.hover = 1.4;
       } else {
-        b.target = (b.target + 1 + Math.floor(Math.random() * (s.spikes.length - 1))) % s.spikes.length;
+        b.target = b.forced ?? (b.target + 1 + Math.floor(Math.random() * (s.spikes.length - 1))) % s.spikes.length;
+        b.forced = undefined;
         const sp = s.spikes[b.target];
         const bell = 2 + Math.floor(Math.random() * Math.max(1, sp.h * 0.5 - 2));
         tx = sp.x + Math.round(sp.lean * (sp.h - bell));
@@ -1297,7 +1671,8 @@ export class ForestScene {
     for (const sp of s.spikes) {
       const pal = (sp.kind ? FIREWEED : FOXGLOVE).tones(sky);
       const g = this.gy[Math.max(0, Math.min(this.W - 1, sp.x))];
-      const sway = wind(sp.x, t, this.W) * 1.5;
+      const g0 = this.gy[Math.max(0, Math.min(this.W - 1, sp.x))];
+      const sway = wind(sp.x, t, this.W) * 1.5 + (sp.kick ?? 0) * 6 + this.push(sp.x, g0 - sp.h, g0, 10) * 0.8;
       for (let j = 0; j < sp.h; j++) {
         const k = j / sp.h;
         const x = Math.round(sp.x + (sp.lean + sway * 0.12) * j * (k * 0.8));
@@ -1330,6 +1705,14 @@ export class ForestScene {
   private updateWeb(i: Input, dt: number) {
     const s = this.state;
     const r = s.rand as () => number;
+    // The web trembles where it is touched; a tap sets it ringing.
+    s.wob = s.wob ?? { x: s.cx, y: s.cy, amp: 0 };
+    s.wob.amp *= Math.exp(-dt * 2.6);
+    if (i.pointer && Math.hypot(i.px - s.cx, i.py - s.cy) < s.R) {
+      s.wob.x = i.px;
+      s.wob.y = i.py;
+      s.wob.amp = Math.max(s.wob.amp, 0.7);
+    }
     for (const g of s.gnats) {
       if (g.stuck) {
         g.life += dt;
@@ -1404,11 +1787,16 @@ export class ForestScene {
     for (let y = Math.round(cy + R * 0.4); y < g; y++) f.px(stalkX + Math.round(wind(stalkX, t, this.W) * (g - y) * 0.02), y, stem[2]);
     f.rect(stalkX - 1, Math.round(cy + R * 0.4) - 3, 3, 3, BARK.tones(sky)[3]);
 
+    const wob = s.wob as undefined | { x: number; y: number; amp: number };
     const strand = (x0: number, y0: number, x1: number, y1: number) => {
       const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)));
       for (let k = 0; k <= n; k++) {
         const x = Math.round(x0 + ((x1 - x0) * k) / n);
-        const y = Math.round(y0 + ((y1 - y0) * k) / n);
+        let y = Math.round(y0 + ((y1 - y0) * k) / n);
+        if (wob && wob.amp > 0.05) {
+          const dw = Math.hypot(x - wob.x, y - wob.y);
+          y += Math.round(wob.amp * Math.exp(-dw / (R * 0.35)) * Math.sin(t * 26 - dw * 0.6));
+        }
         // Where the thread faces the sun it flashes; elsewhere it is barely there.
         const ang = Math.atan2(y - cy, x - cx);
         const glint = Math.cos(ang * 2 - t * 0.4 - Math.atan2(this.sunY(this.spec.hour) - cy, this.sunX - cx) * 2);
@@ -1524,7 +1912,7 @@ export class ForestScene {
     const pals = [CLOVER, DAISY, BUTTERCUP, CORNFLOWER].map((m) => m.tones(sky));
     for (const fl of s.flowers) {
       const g = this.gy[Math.max(0, Math.min(this.W - 1, fl.x))];
-      const bend = Math.round(wind(fl.x, t, this.W) * 1.2);
+      const bend = Math.round(wind(fl.x, t, this.W) * 1.2 + this.push(fl.x, g - fl.h, g, 7));
       for (let j = 1; j <= fl.h; j++) f.px(fl.x + (j > fl.h - 2 ? bend : 0), g - j, stem[j % 3 ? 2 : 1]);
       const p = pals[fl.kind];
       const x = fl.x + bend;
@@ -1584,7 +1972,7 @@ export class ForestScene {
     const fern = FERN.tones(sky);
     for (const fr of this.state.ferns) {
       const g = this.gy[Math.max(0, Math.min(this.W - 1, fr.x))];
-      const sway = Math.round(wind(fr.x, t, this.W) * 1.2);
+      const sway = Math.round(wind(fr.x, t, this.W) * 1.2 + this.push(fr.x, g - fr.h, g, 9));
       for (let j = 0; j < fr.h; j++) {
         const x = fr.x + fr.s * Math.round(j * 0.6) + (j > fr.h / 2 ? sway : 0);
         const y = g - Math.round(j * 0.8);
@@ -1606,6 +1994,12 @@ export class ForestScene {
       if (i.pointer && Math.abs(i.py - base) < 18) {
         const dx = b.x - i.px;
         if (Math.abs(dx) < 10) lean += Math.sign(dx || 1) * (10 - Math.abs(dx)) * 0.3;
+      }
+      // A press flattens the grass outward in a spreading ring.
+      if (this.press && Math.abs(this.press.y - base) < 14) {
+        const dx = b.x - this.press.x;
+        const r = 4 + this.press.age * 50;
+        if (Math.abs(Math.abs(dx) - r) < 5) lean += Math.sign(dx || 1) * (1 - this.press.age / 0.6) * b.h * 0.9;
       }
       for (let j = 0; j < b.h; j++) {
         const k = j / b.h;

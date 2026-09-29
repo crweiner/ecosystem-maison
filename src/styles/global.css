@@ -142,6 +142,14 @@ a {
   z-index: 1;
 }
 
+/* Over something in the forest that would answer a click: a pond, a tree, the stag. */
+@media (pointer: fine) {
+  html.forest-hot,
+  html.forest-hot body {
+    cursor: pointer;
+  }
+}
+
 /*
  * Without scripting or canvas there is no forest: the page keeps a still,
  * stepped dawn sky (hard stops, like the canvas's bands) behind the words.

@@ -71,7 +71,13 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     height: 0,
   }));
   const skies = new Map<number, Sky>();
-  const input: Input = { t: 0, dt: 0, px: -999, py: -999, pointer: false, reduced: reduce.matches };
+  const input: Input = { t: 0, dt: 0, px: -999, py: -999, pointer: false, reduced: reduce.matches, tap: null };
+  /** Under reduced motion there is no loop; a tap still plays out briefly so it is acknowledged. */
+  let burstUntil = 0;
+  let down: { x: number; y: number; t: number; ui: boolean } | null = null;
+  /** Words, controls and chrome belong to the page, not the forest. */
+  const isUI = (el: EventTarget | null) =>
+    el instanceof Element && !!el.closest('a, button, input, select, textarea, label, [data-copy], nav, .masthead, .whereabouts, .colophon');
   let lastPointer = -1e9;
   let raf = 0;
   let last = performance.now();
@@ -172,7 +178,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       if (s.kind !== 'trees') continue;
       const start = s.top - vh / 2;
       const end = s.top + s.height + vh / 2;
-      if (y < start || y > end) continue;
+      // Exclusive edges: at rest on a clearing, the wall has not begun.
+      if (y <= start || y >= end) continue;
       const prev = sections.slice(0, i).reverse().find((x) => x.kind === 'scene') ?? sections.find((x) => x.kind === 'scene')!;
       const next = sections.slice(i + 1).find((x) => x.kind === 'scene') ?? prev;
       const p = Math.max(0, Math.min(1, (y - start) / Math.max(1, end - start)));
@@ -280,7 +287,10 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       input.t += acc;
       acc = 0;
       input.pointer = now - lastPointer < 2500;
+      // A tap only lands in a clearing, never mid-wall.
+      if (input.tap && active.length !== 1) input.tap = null;
       for (const s of active) s.update(input);
+      input.tap = null;
       render();
       dirty = false;
     } else if (dirty) {
@@ -292,7 +302,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   }
 
   function schedule() {
-    if (!raf && running && !reduce.matches && !document.hidden) raf = requestAnimationFrame(tick);
+    const allowed = !reduce.matches || performance.now() < burstUntil;
+    if (!raf && running && allowed && !document.hidden) raf = requestAnimationFrame(tick);
   }
 
   const onScroll = () => {
@@ -318,6 +329,11 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     input.px = e.clientX / U;
     input.py = e.clientY / U;
     lastPointer = performance.now();
+    // Say so with the cursor when the forest under a mouse would answer a click.
+    if (e.pointerType === 'mouse') {
+      const hot = active.length === 1 && !isUI(e.target) && active[0].hot(input.px, input.py);
+      root.classList.toggle('forest-hot', hot);
+    }
   };
   const onVisibility = () => {
     last = performance.now();
@@ -333,6 +349,27 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   window.addEventListener('resize', onResize);
   window.addEventListener('pointermove', onPointer, { passive: true });
   window.addEventListener('pointerdown', onPointer, { passive: true });
+  // A tap is a press and release that barely moves: anything longer is a scroll or a drag.
+  const onDown = (e: PointerEvent) => {
+    down = { x: e.clientX, y: e.clientY, t: performance.now(), ui: isUI(e.target) };
+  };
+  const onUp = (e: PointerEvent) => {
+    const d = down;
+    down = null;
+    if (!d || d.ui || e.button > 0) return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10 || performance.now() - d.t > 500) return;
+    input.tap = { x: e.clientX / U, y: e.clientY / U };
+    input.px = input.tap.x;
+    input.py = input.tap.y;
+    lastPointer = performance.now();
+    if (reduce.matches) {
+      burstUntil = performance.now() + 1400;
+      last = performance.now();
+    }
+    schedule();
+  };
+  window.addEventListener('pointerdown', onDown, { passive: true });
+  window.addEventListener('pointerup', onUp, { passive: true });
   document.addEventListener('visibilitychange', onVisibility);
   reduce.addEventListener('change', onMotion);
   const ro = new ResizeObserver(() => measure());
@@ -361,6 +398,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('pointerdown', onPointer);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
       document.removeEventListener('visibilitychange', onVisibility);
       reduce.removeEventListener('change', onMotion);
       ro.disconnect();
