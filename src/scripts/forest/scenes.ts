@@ -122,6 +122,20 @@ interface Blade {
   h: number;
   tone: number;
   flower?: number;
+  kick?: number;
+  kv?: number;
+}
+
+/** A stem that sways on a spring: brushed by a moving hand, it leans, overshoots and settles like wind. */
+interface Stem {
+  kick?: number;
+  kv?: number;
+}
+
+/** Integrate one stem's spring. Soft and slightly underdamped, like a gust passing through. */
+function springStem(st: Stem, dt: number) {
+  st.kv = (st.kv ?? 0) + (-(st.kick ?? 0) * 30 - (st.kv ?? 0) * 3.4) * dt;
+  st.kick = Math.max(-1.3, Math.min(1.3, (st.kick ?? 0) + st.kv * dt));
 }
 
 export class ForestScene {
@@ -897,20 +911,53 @@ export class ForestScene {
     return null;
   }
 
-  /** How far the pointer pushes a stem at x whose top is at y (world pixels, signed). */
-  private push(x: number, top: number, bottom: number, reach = 9): number {
+  /** The pointer's sideways speed in world pixels per second, smoothed. */
+  private pvx = 0;
+  private lastPx = NaN;
+
+  /**
+   * A moving hand brushes a stem: it gets a push in the direction of travel,
+   * scaled by how fast the hand moves and how close it passes. A resting hand
+   * pushes nothing, so stems never snap from side to side.
+   */
+  private brush(st: Stem, x: number, top: number, bottom: number, reach = 8) {
     const i = this.ptr;
-    let lean = 0;
-    if (i?.pointer && i.py > top - 4 && i.py < bottom + 4) {
-      const dx = x - i.px;
-      if (Math.abs(dx) < reach) lean += Math.sign(dx || 1) * (reach - Math.abs(dx)) * 0.35;
+    if (!i?.pointer || Math.abs(this.pvx) < 2) return;
+    if (i.py < top - 3 || i.py > bottom + 3) return;
+    const d = Math.abs(x - i.px);
+    if (d >= reach) return;
+    const push = Math.max(-0.5, Math.min(0.5, this.pvx * 0.006)) * (1 - d / reach);
+    st.kv = (st.kv ?? 0) + push;
+  }
+
+  /** Let every stem in this clearing feel the hand, then swing on its spring. */
+  private swayStems(dt: number) {
+    const s = this.state;
+    const stems: [Stem, number, number, number, number?][] = [];
+    for (const b of this.blades) {
+      const g = this.gy[b.x];
+      stems.push([b, b.x, g - b.h, g]);
     }
-    if (this.press) {
-      const dx = x - this.press.x;
-      const r = 6 + this.press.age * 40;
-      if (Math.abs(dx) < r && Math.abs(bottom - this.press.y) < 14) lean += Math.sign(dx || 1) * (1 - this.press.age / 0.6) * 3;
+    if (s.reeds) {
+      const shore = this.spec.kind === 'meadow' ? s.pondBot : s.waterBot;
+      for (const rd of s.reeds) stems.push([rd, rd.x, shore - rd.h, shore]);
     }
-    return lean;
+    if (s.spikes) for (const sp of s.spikes) {
+      const g = this.groundAt(sp.x);
+      stems.push([sp, sp.x, g - sp.h, g, 10]);
+    }
+    if (s.flowers) for (const fl of s.flowers) {
+      const g = this.groundAt(fl.x);
+      stems.push([fl, fl.x, g - fl.h, g, 7]);
+    }
+    if (s.ferns) for (const fr of s.ferns) {
+      const g = this.groundAt(fr.x);
+      stems.push([fr, fr.x, g - fr.h, g, 9]);
+    }
+    for (const [st, x, top, bottom, reach] of stems) {
+      this.brush(st, x, top, bottom, reach);
+      springStem(st, dt);
+    }
   }
 
   private groundAt(x: number): number {
@@ -973,6 +1020,13 @@ export class ForestScene {
 
   private updateFx(i: Input, dt: number) {
     const water = this.waterBand();
+    if (i.pointer && !Number.isNaN(this.lastPx) && dt > 0) {
+      this.pvx = this.pvx * 0.5 + ((i.px - this.lastPx) / dt) * 0.5;
+    } else {
+      this.pvx = 0;
+    }
+    this.lastPx = i.pointer ? i.px : NaN;
+    this.swayStems(dt);
     // Particles fall, drift and fade; drops that land on water leave a small ring.
     for (const p of this.particles) {
       p.vy += p.g * dt;
@@ -1025,7 +1079,16 @@ export class ForestScene {
     const water = this.waterBand();
     const inWater = !!water && y >= water[0] && y < water[1];
     const onGround = this.spec.kind !== 'beavers' && this.spec.kind !== 'bear' && Math.abs(y - this.groundAt(x)) < 10;
-    if (onGround) this.press = { x, y, age: 0 };
+    if (onGround) {
+      this.press = { x, y, age: 0 };
+      const nudge = (st: Stem, sx: number) => {
+        const dx = sx - x;
+        if (Math.abs(dx) < 14) st.kv = (st.kv ?? 0) + Math.sign(dx || 1) * 1.6 * (1 - Math.abs(dx) / 14);
+      };
+      for (const b of this.blades) nudge(b, b.x);
+      for (const fl of this.state.flowers ?? []) nudge(fl, fl.x);
+      for (const fr of this.state.ferns ?? []) nudge(fr, fr.x);
+    }
     switch (this.spec.kind) {
       case 'meadow': {
         const d = s.deer;
@@ -1099,7 +1162,7 @@ export class ForestScene {
         });
         if (best >= 0) {
           const sp = s.spikes[best];
-          sp.kv = (sp.kv ?? 0) + (x < sp.x ? 1 : -1) * 5;
+          sp.kv = (sp.kv ?? 0) + (x < sp.x ? 1 : -1) * 2.4;
           const g = this.groundAt(sp.x);
           this.spawn(5, sp.x, g - sp.h * 0.7, 'petal', [206, 82, 150], { vx: 10, vy: 4, up: 6, g: 18, life: 4 });
           s.bird.forced = best;
@@ -1292,7 +1355,7 @@ export class ForestScene {
     const c = LEAF_DEEP.tones(sky);
     const head = BARK.tones(sky)[1];
     for (const rd of reeds) {
-      const bend = Math.round(wind(rd.x, t, this.W) * 1.4 + this.push(rd.x, shoreY - rd.h, shoreY));
+      const bend = Math.round(wind(rd.x, t, this.W) * 1.4 + (rd.kick ?? 0) * 2.5);
       for (let j = 0; j < rd.h; j++) f.px(rd.x + (j > rd.h * 0.6 ? bend : 0), shoreY - j, c[1]);
       f.px(rd.x + bend, shoreY - rd.h, head);
       f.px(rd.x + bend, shoreY - rd.h - 1, head);
@@ -1622,11 +1685,6 @@ export class ForestScene {
   private updateHummer(i: Input, dt: number) {
     const s = this.state;
     const b = s.bird;
-    // Tapped spikes spring back and forth, then settle.
-    for (const sp of s.spikes) {
-      sp.kv = (sp.kv ?? 0) + (-(sp.kick ?? 0) * 60 - (sp.kv ?? 0) * 5) * dt;
-      sp.kick = (sp.kick ?? 0) + sp.kv * dt;
-    }
     if (b.dart > 0) {
       b.dart -= dt;
       const k = 1 - Math.max(0, b.dart) / 0.22;
@@ -1672,7 +1730,7 @@ export class ForestScene {
       const pal = (sp.kind ? FIREWEED : FOXGLOVE).tones(sky);
       const g = this.gy[Math.max(0, Math.min(this.W - 1, sp.x))];
       const g0 = this.gy[Math.max(0, Math.min(this.W - 1, sp.x))];
-      const sway = wind(sp.x, t, this.W) * 1.5 + (sp.kick ?? 0) * 6 + this.push(sp.x, g0 - sp.h, g0, 10) * 0.8;
+      const sway = wind(sp.x, t, this.W) * 1.5 + (sp.kick ?? 0) * 5;
       for (let j = 0; j < sp.h; j++) {
         const k = j / sp.h;
         const x = Math.round(sp.x + (sp.lean + sway * 0.12) * j * (k * 0.8));
@@ -1912,7 +1970,7 @@ export class ForestScene {
     const pals = [CLOVER, DAISY, BUTTERCUP, CORNFLOWER].map((m) => m.tones(sky));
     for (const fl of s.flowers) {
       const g = this.gy[Math.max(0, Math.min(this.W - 1, fl.x))];
-      const bend = Math.round(wind(fl.x, t, this.W) * 1.2 + this.push(fl.x, g - fl.h, g, 7));
+      const bend = Math.round(wind(fl.x, t, this.W) * 1.2 + (fl.kick ?? 0) * 2);
       for (let j = 1; j <= fl.h; j++) f.px(fl.x + (j > fl.h - 2 ? bend : 0), g - j, stem[j % 3 ? 2 : 1]);
       const p = pals[fl.kind];
       const x = fl.x + bend;
@@ -1972,7 +2030,7 @@ export class ForestScene {
     const fern = FERN.tones(sky);
     for (const fr of this.state.ferns) {
       const g = this.gy[Math.max(0, Math.min(this.W - 1, fr.x))];
-      const sway = Math.round(wind(fr.x, t, this.W) * 1.2 + this.push(fr.x, g - fr.h, g, 9));
+      const sway = Math.round(wind(fr.x, t, this.W) * 1.2 + (fr.kick ?? 0) * 2.5);
       for (let j = 0; j < fr.h; j++) {
         const x = fr.x + fr.s * Math.round(j * 0.6) + (j > fr.h / 2 ? sway : 0);
         const y = g - Math.round(j * 0.8);
@@ -1991,10 +2049,7 @@ export class ForestScene {
     for (const b of this.blades) {
       const base = this.gy[b.x];
       let lean = wind(b.x, i.t, this.W) * (b.h / 3.2);
-      if (i.pointer && Math.abs(i.py - base) < 18) {
-        const dx = b.x - i.px;
-        if (Math.abs(dx) < 10) lean += Math.sign(dx || 1) * (10 - Math.abs(dx)) * 0.3;
-      }
+      lean += (b.kick ?? 0) * b.h * 0.55;
       // A press flattens the grass outward in a spreading ring.
       if (this.press && Math.abs(this.press.y - base) < 14) {
         const dx = b.x - this.press.x;
