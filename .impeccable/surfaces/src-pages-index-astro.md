@@ -10,7 +10,7 @@ related_targets: ["src/pages/wander.astro"]
 Scope: the single home page at `/`, plus the shareable `/wander/` random link. Visitor mode: Experience. The forest leads, but the Persuade rule applies: within seconds the visitor must know what this is and see both actions. Success means the visitor leaves for an ecosystem product's site, through the random jump or through a product stop.
 
 Audience: the general public, arriving from outside links or from cosmos.maison, on any screen from small phones to ultrawide monitors (the owner requires that the page look great at every aspect ratio).
-Actions: "Explore a random ecosystem" is primary and appears in both the hero and the close. It leaves in the same tab for a random product, never the one chosen last. "I want to explore" is secondary and scrolls to the first stop.
+Actions: "Explore a random biome" is primary and appears in both the hero and the close. It leaves in the same tab for a random product, never the one chosen last. "Walk the trail" is secondary and scrolls to the first stop.
 Content: seven stops (WordPress.com, WooCommerce, WordPress VIP, Jetpack, Akismet, Newspack, Gravatar), each with its official logo, a one-line tagline, an original haiku and a tagged outbound link. No claims, metrics or testimonials.
 Constraints: Astro static output on Spacefast, with no server code. WCAG 2.2 AA. The page must work under reduced motion, without canvas and without JS.
 
@@ -26,5 +26,5 @@ FORM: Widescreen Pixel Cinema (after Superbrothers' Sword & Sworcery), candidate
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Unresolved
-- The taglines, haikus and the close headline ("Pick a path, any path") are drafts awaiting owner approval.
+- Taglines and haikus are owner-approved (2026-09-28). The close headline ("Pick a path, any path") has not been separately confirmed.
 - The logo colorways on the scenes use each brand's published reversed (white) mark where one exists.

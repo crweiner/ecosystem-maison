@@ -18,7 +18,7 @@ The general public. They reach ecosystem.maison from outside links, or from cosm
 
 ecosystem.maison is the companion to cosmos.maison. Cosmos presents Automattic's consumer brands. This site presents the WordPress side of the business, the "ecosystem." It does two jobs:
 
-1. **Random jump.** "Explore a random ecosystem" sends the visitor straight to the website of one ecosystem product, chosen at random.
+1. **Random jump.** "Explore a random biome" sends the visitor straight to the website of one ecosystem product, chosen at random.
 2. **Exploration.** A single scrolling page with one stop per ecosystem product, so visitors can see the whole ecosystem and pick one themselves.
 
 A visit succeeds when the visitor leaves for an ecosystem product's site, either through the random jump or through a product stop.
@@ -38,7 +38,7 @@ This is the only place that presents Automattic's WordPress products together as
 
 - Home page title: **"Welcome to our Ecosystem"**.
 - Supporting line: **"Explore Automattic's ecosystem of WordPress products"**. Visible copy calls the group an "ecosystem," never a "family."
-- Primary actions: **"Explore a random ecosystem"** (sends the visitor to a random product's site) and **"I want to explore"** (scrolls down to the product stops). The random action appears at both the very top and the very bottom of the page.
+- Primary actions: **"Explore a random biome"** (sends the visitor to a random product's site) and **"Walk the trail"** (scrolls down to the product stops). The random action appears at both the very top and the very bottom of the page.
 - Each product has its own anchor on the home page with its official logo, a short plain tagline, an original haiku and a link to its site.
 - Every outbound link carries `utm_source=ecosystem.maison&utm_medium=referral&utm_campaign=ecosystem` plus a `utm_content` value naming the path the visitor took (for example `jump`, `stop`, `jump-link`, `jump-list`). A single `referral()` helper applies the tags, and no link may leave the site without them.
 - Haikus and taglines use no em dashes (owner preference). A tagline describes the product in one line and makes no claims.
@@ -52,7 +52,7 @@ The owner stated these binding constraints for the home page:
 - **Between stops:** each time the visitor scrolls from one level to the next, they pass through pixel art trees.
 - **One forest scene per product.** Each product stop is its own scene of forest life.
 - **Bottom of the page:** the grazing deer again, this time at **sunset**.
-- **Random jump:** when the visitor clicks "Explore a random ecosystem," the deer runs off the right side of the screen, then the random product's site loads.
+- **Random jump:** when the visitor clicks "Explore a random biome," the deer runs off the right side of the screen, then the random product's site loads.
 - The structure mirrors cosmos.maison: hero, product stops with anchors, logo, blurb, haiku and a tagged link, and a random action.
 
 Each product's name and logo must be used exactly as that product publishes them.
@@ -61,7 +61,7 @@ Each product's name and logo must be used exactly as that product publishes them
 
 - Sibling implementation and conventions: `../cosmos-maison` (branch `astro-galaxy-home`). This includes its data model, `referral()` tagging, the warp route and its accessibility approach.
 - Logos have not been collected yet. Take each official mark from the product's own site or press kit, record its source, and never redraw or approximate it.
-- Taglines and haikus are still to be written: original copy in the cosmos style, approved by the owner before it ships. They are not quotes or endorsements.
+- Taglines and haikus: original copy in the cosmos style, approved by the owner (2026-09-28). They are not quotes or endorsements; any change needs owner approval.
 - There are no testimonials, metrics or press, and none may be invented.
 
 ## Product Principles

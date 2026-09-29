@@ -30,10 +30,10 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         <p class="hero__lede">Explore Automattic's ecosystem of WordPress products</p>
         <div class="actions">
           <a class="plate" href="/wander/" data-wander>
-            <span class="plate__face"><span>Explore a random ecosystem<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
+            <span class="plate__face"><span>Explore a random biome<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
           </a>
           <a class="plate plate--ghost" href={`#${first.slug}`}>
-            <span class="plate__face"><span>I want to explore</span><Icon name="down" /></span>
+            <span class="plate__face"><span>Walk the trail</span><Icon name="down" /></span>
           </a>
         </div>
         <p class="visually-hidden">A deer grazes on a knoll by a still pond at sunrise.</p>
@@ -56,7 +56,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
         <h2 id="close-title" class="display close__title">Pick a path, any&nbsp;path</h2>
         <div class="actions">
           <a class="plate" href="/wander/" data-wander>
-            <span class="plate__face"><span>Explore a random ecosystem<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
+            <span class="plate__face"><span>Explore a random biome<span class="visually-hidden">, opens one product's website</span></span><Icon name="out" /></span>
           </a>
           <a class="plate plate--ghost" href="#top">
             <span class="plate__face"><span>Back to the top</span><Icon name="up" /></span>
@@ -121,7 +121,7 @@ const cosmos = referral('https://cosmos.maison/', 'colophon');
     canvas.remove();
   }
 
-  // --- Explore a random ecosystem: follow the deer ----------------------------
+  // --- Explore a random biome: follow the deer ----------------------------
   type Target = { name: string; url: string };
   const listed = (window as unknown as { __ecosystemTargets?: Target[] }).__ecosystemTargets;
   const targets: Target[] = Array.isArray(listed) ? listed : [];

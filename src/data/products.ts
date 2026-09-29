@@ -1,7 +1,7 @@
 /**
  * Automattic's ecosystem of WordPress products. Each entry becomes one forest
  * scene on the home page, one tick in the stop index and one possible
- * destination for "Explore a random ecosystem". Add a product here (plus a
+ * destination for "Explore a random biome". Add a product here (plus a
  * scene kind in src/scripts/forest/scenes.ts) and every part of the page
  * picks it up.
  */
@@ -105,7 +105,7 @@ export const products: Product[] = [
     logoRatio: 203 / 44,
     logoScale: 0.98,
     tagline: "Spam protection for your site's comments and forms",
-    haiku: ['The silk web holds fast,', 'the gnats caught, the dew let through,', 'sunlight on each strand'],
+    haiku: ['The silk web holds fast,', 'gnats stay; the dew passes by,', 'sunlight on each strand'],
     sceneLabel: 'A spider web catching gnats while drops of dew slip through',
     scene: { kind: 'web', hour: 14.4, seed: 53 },
   },
