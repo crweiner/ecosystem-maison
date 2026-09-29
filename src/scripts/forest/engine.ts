@@ -10,7 +10,7 @@
  */
 import { skyAt, type Sky } from './color';
 import { Frame } from './raster';
-import { ForestScene, paintWall, wallSpan, type Input, type Layout } from './scenes';
+import { ForestScene, paintWall, wallCover, wallSpan, type Input, type Layout } from './scenes';
 import { boardReach, entranceSign, kiosk } from './signs';
 import type { Scene } from '../../data/products';
 
@@ -103,6 +103,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
   let running = true;
   let lastHour = -1;
   let active: ForestScene[] = [];
+  /** The clearing showing at a column of the last frame drawn, or null where the wall stands solid. */
+  let sceneAt: (x: number) => ForestScene | null = () => null;
   let dirty = false;
 
   function skyFor(hour: number): Sky {
@@ -286,13 +288,21 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     let sky = skyA;
 
     if (!b) {
-      a.scene!.paint(frame, a.bg!, skyA, input);
+      const only = a.scene!;
+      sceneAt = () => only;
+      only.paint(frame, a.bg!, skyA, input);
     } else if (reduced) {
       // Reduced motion: no wall, a clean cut halfway between clearings.
       const s = where.p < 0.5 ? a : b;
+      const shown = s.scene!;
+      sceneAt = () => shown;
       sky = where.p < 0.5 ? skyA : skyB;
-      s.scene!.paint(frame, s.bg!, sky, input);
+      shown.paint(frame, s.bg!, sky, input);
     } else {
+      const cover = wallCover(W, where.p);
+      const left = a.scene!;
+      const right = b.scene!;
+      sceneAt = (x) => (x < cover.x0 ? left : x > cover.x1 ? right : null);
       const span = wallSpan(W, where.p);
       a.scene!.paint(frame, a.bg!, skyA, input);
       if (span.mid < W) {
@@ -327,9 +337,13 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       input.t += acc;
       acc = 0;
       input.pointer = now - lastPointer < 2500;
-      // A tap only lands in a clearing, never mid-wall.
-      if (input.tap && active.length !== 1) input.tap = null;
-      for (const s of active) s.update(input);
+      // A tap lands in whichever clearing shows where it falls; the wall's solid middle keeps it.
+      const tap = input.tap;
+      const tapped = tap ? sceneAt(tap.x) : null;
+      for (const s of active) {
+        input.tap = s === tapped ? tap : null;
+        s.update(input);
+      }
       input.tap = null;
       render();
       dirty = false;
@@ -384,7 +398,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     wake();
     // Say so with the cursor when the forest under a mouse would answer a click.
     if (e.pointerType === 'mouse') {
-      const hot = active.length === 1 && !isUI(e.target) && active[0].hot(input.px, input.py);
+      const hot = !isUI(e.target) && !!sceneAt(input.px)?.hot(input.px, input.py);
       root.classList.toggle('forest-hot', hot);
     }
   };

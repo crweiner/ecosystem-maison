@@ -2079,6 +2079,7 @@ export class ForestScene {
  */
 const WALL = 1.0; // base wall width, in frame widths
 const RAMP = 0.25; // thinning at each ragged end, in frame widths
+const SOLID = 0.55; // ramp density at which the forest's depth closes in behind the trunks
 const RANKS = [
   // Far trunks: thin, hazed into the forest's depth, slower.
   { speed: 0.9, shade: 0.45, ink: 0.1, wMin: 3, wFrac: 0.03, gap: 5, keep: 1.4, rim: false },
@@ -2142,6 +2143,17 @@ export function wallSpan(W: number, p: number): { left: number; mid: number; rig
   return { left, mid: left + width / 2, right: left + width };
 }
 
+/**
+ * The stretch of the frame the wall fills solid at progress p. Either side of
+ * it a clearing still shows (the one being left on the left, the one ahead on
+ * the right), and a tap there belongs to that clearing.
+ */
+export function wallCover(W: number, p: number): { x0: number; x1: number } {
+  const span = wallSpan(W, p);
+  const edge = W * RAMP * SOLID;
+  return { x0: span.left + edge, x1: span.right - edge };
+}
+
 const WALL_BARK = new Material(hex('#4a3a2c'));
 const WALL_LEAF = new Material(hex('#27462a'));
 
@@ -2164,8 +2176,8 @@ export function paintWall(f: Frame, sky: Sky, p: number, seed: number, sunX: num
     const u = x - offset;
     if (u < 0 || u > width) continue;
     const d = density(u);
-    if (d < 0.55) continue;
-    const k = Math.min(1, (d - 0.55) / 0.4);
+    if (d < SOLID) continue;
+    const k = Math.min(1, (d - SOLID) / 0.4);
     for (let y = 0; y < H; y++) {
       if (bayer(u, y) / 16 >= k) continue;
       const v = y / H;
