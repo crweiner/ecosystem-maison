@@ -116,7 +116,8 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       const centred = c.left < vw * 0.42 && c.right > vw * 0.58;
       if (centred || c.width > vw * 0.72) {
         textSide = 'bottom';
-        groundY = Math.round(Math.max(H * 0.36, Math.min(H * 0.64, y0 - 8)));
+        // Stack the clearing above the whole sign (roof, pinned band and frame), not just the words.
+        groundY = Math.round(Math.max(H * 0.36, Math.min(H * 0.64, y0 - boardReach(W, H) - 2)));
         stageX = Math.round(W / 2);
         stageW = W;
       } else if ((c.left + c.right) / 2 < vw / 2) {
@@ -140,15 +141,26 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     }
   }
 
+  /**
+   * The tallest the viewport gets: phone browsers hide their toolbars as you
+   * scroll, growing the viewport without a resize worth rebuilding for. The
+   * world is sized to that large viewport so it always reaches the bottom edge.
+   */
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
+  document.body.append(probe);
+  const largeHeight = () => Math.max(window.innerHeight, probe.getBoundingClientRect().height || 0);
+
   function build() {
     // A hidden tab, a collapsed frame or a rotation mid-flight can report no size;
     // wait for a real one rather than allocating an empty canvas.
     if (window.innerWidth < 1 || window.innerHeight < 1) return;
     vw = window.innerWidth;
     vh = window.innerHeight;
+    const lh = largeHeight();
     U = pixelUnit(vw, vh);
     W = Math.ceil(vw / U);
-    H = Math.ceil(vh / U);
+    H = Math.ceil(lh / U);
     canvas.width = W;
     canvas.height = H;
     canvas.style.width = `${W * U}px`;
@@ -323,8 +335,11 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
     resizeTimer = window.setTimeout(() => {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      // Phone address bars nudge the height as you scroll; only rebuild for real changes.
+      // Phone address bars nudge the height as you scroll. The world already
+      // covers the large viewport, so only a real change (rotation, window
+      // resize) rebuilds; a toolbar just moves the scroll centre.
       if (w === vw && Math.abs(h - vh) / vh < 0.12) {
+        vh = h;
         measure();
         render(true);
         return;
@@ -405,6 +420,7 @@ export function startForest(canvas: HTMLCanvasElement, sectionEls: HTMLElement[]
       window.removeEventListener('resize', onResize);
       window.removeEventListener('pointermove', onPointer);
       window.removeEventListener('pointerdown', onPointer);
+      probe.remove();
       window.removeEventListener('pointerdown', onDown);
       window.removeEventListener('pointerup', onUp);
       document.removeEventListener('visibilitychange', onVisibility);
